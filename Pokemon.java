@@ -1,166 +1,215 @@
 public class Pokemon {
-        // Atributos da classe
-        private String abilities;
-        private int attack;
-        private int baseEggSteps;
-        private int baseTotal;
-        private int captureRate;
-        private int defense;
-        private double heightM;
-        private int hp;
+        private int number;
         private String name;
-        private int pokedexNumber;
-        private int spAttack;
-        private int spDefense;
-        private int speed;
         private String type1;
         private String type2;
-        private double weightKg;
-        private int generation;
-        private boolean isLegendary;
-        
-// Getters and Setters
-public String getAbilities() {
-        return abilities;
-}
+        private String abilities;
+        private int hp;
+        private int att;
+        private int def;
+        private int spa;
+        private int spd;
+        private int spe;
+        private int bst;
+        private double mean;
+        private double standardDeviation;
+        private String generation;
+        private String catchRate;
+        private double legendary;
+        private double megaEvolution;   
+        private double height;
+        private double weight;
+        private double bmi;
 
-public void setAbilities(String abilities) {
-        this.abilities = abilities;
-}
+        public Pokemon(int number, String name, String type1, String type2, String abilities, int hp, int att, int def, int spa, int spd, int spe, int bst, double mean, double standardDeviation, String generation, String catchRate, double legendary, double megaEvolution, double height, double weight, double bmi) {
+                this.number = number;
+                this.name = name;
+                this.type1 = type1;
+                this.type2 = type2;
+                this.abilities = abilities;
+                this.hp = hp;
+                this.att = att;
+                this.def = def;
+                this.spa = spa;
+                this.spd = spd;
+                this.spe = spe;
+                this.bst = bst;
+                this.mean = mean;
+                this.standardDeviation = standardDeviation;
+                this.generation = generation;
+                this.catchRate = catchRate;
+                this.legendary = legendary;                     
+                this.megaEvolution = megaEvolution;
+                this.height = height;
+                this.weight = weight;
+                this.bmi = bmi;
+        }
+        // Getters and Setters
+        public int getNumber() {
+                return number;
+        }
 
-public int getAttack() {
-        return attack;
-}
+        public void setNumber(int number) {
+                this.number = number;
+        }
 
-public void setAttack(int attack) {
-        this.attack = attack;
-}
+        public String getName() {
+                return name;
+        }
 
-public int getBaseEggSteps() {
-        return baseEggSteps;
-}
+        public void setName(String name) {
+                this.name = name;
+        }
 
-public void setBaseEggSteps(int baseEggSteps) {
-        this.baseEggSteps = baseEggSteps;
-}
+        public String getType1() {
+                return type1;
+        }
 
-public int getBaseTotal() {
-        return baseTotal;
-}
+        public void setType1(String type1) {
+                this.type1 = type1;
+        }
 
-public void setBaseTotal(int baseTotal) {
-        this.baseTotal = baseTotal;
-}
+        public String getType2() {
+                return type2;
+        }
 
-public int getCaptureRate() {
-        return captureRate;
-}
+        public void setType2(String type2) {
+                this.type2 = type2;
+        }
 
-public void setCaptureRate(int captureRate) {
-        this.captureRate = captureRate;
-}
+        public String getAbilities() {
+                return abilities;
+        }
 
-public int getDefense() {
-        return defense;
-}
+        public void setAbilities(String abilities) {
+                this.abilities = abilities;
+        }
 
-public void setDefense(int defense) {
-        this.defense = defense;
-}
+        public int getHp() {
+                return hp;
+        }
 
-public double getHeightM() {
-        return heightM;
-}
+        public void setHp(int hp) {
+                this.hp = hp;
+        }
 
-public void setHeightM(double heightM) {
-        this.heightM = heightM;
-}
+        public int getAtt() {
+                return att;
+        }
 
-public int getHp() {
-        return hp;
-}
+        public void setAtt(int att) {
+                this.att = att;
+        }
 
-public void setHp(int hp) {
-        this.hp = hp;
-}
+        public int getDef() {
+                return def;
+        }
 
-public String getName() {
-        return name;
-}
+        public void setDef(int def) {
+                this.def = def;
+        }
 
-public void setName(String name) {
-        this.name = name;
-}
+        public int getSpa() {
+                return spa;
+        }
 
-public int getPokedexNumber() {
-        return pokedexNumber;
-}
+        public void setSpa(int spa) {
+                this.spa = spa;
+        }
 
-public void setPokedexNumber(int pokedexNumber) {
-        this.pokedexNumber = pokedexNumber;
-}
+        public int getSpd() {
+                return spd;
+        }
 
-public int getSpAttack() {
-        return spAttack;
-}
+        public void setSpd(int spd) {
+                this.spd = spd;
+        }
 
-public void setSpAttack(int spAttack) {
-        this.spAttack = spAttack;
-}
+        public int getSpe() {
+                return spe;
+        }
 
-public int getSpDefense() {
-        return spDefense;
-}
+        public void setSpe(int spe) {
+                this.spe = spe;
+        }
 
-public void setSpDefense(int spDefense) {
-        this.spDefense = spDefense;
-}
+        public int getBst() {
+                return bst;
+        }
 
-public int getSpeed() {
-        return speed;
-}
+        public void setBst(int bst) {
+                this.bst = bst;
+        }
 
-public void setSpeed(int speed) {
-        this.speed = speed;
-}
+        public double getMean() {
+                return mean;
+        }
 
-public String getType1() {
-        return type1;
-}
+        public void setMean(double mean) {
+                this.mean = mean;
+        }
 
-public void setType1(String type1) {
-        this.type1 = type1;
-}
+        public double getStandardDeviation() {
+                return standardDeviation;
+        }
 
-public String getType2() {
-        return type2;
-}
+        public void setStandardDeviation(double standardDeviation) {
+                this.standardDeviation = standardDeviation;
+        }
 
-public void setType2(String type2) {
-        this.type2 = type2;
-}
+        public String getGeneration() {
+                return generation;
+        }
 
-public double getWeightKg() {
-        return weightKg;
-}
+        public void setGeneration(String generation) {
+                this.generation = generation;
+        }
 
-public void setWeightKg(double weightKg) {
-        this.weightKg = weightKg;
-}
+        public String getCatchRate() {
+                return catchRate;
+        }
 
-public int getGeneration() {
-        return generation;
-}
+        public void setCatchRate(String catchRate) {
+                this.catchRate = catchRate;
+        }
 
-public void setGeneration(int generation) {
-        this.generation = generation;
-}
+        public double getLegendary() {
+                return legendary;
+        }
 
-public boolean isLegendary() {
-        return isLegendary;
-}
+        public void setLegendary(double legendary) {
+                this.legendary = legendary;
+        }
 
-public void setLegendary(boolean isLegendary) {
-        this.isLegendary = isLegendary;
-}
+        public double getMegaEvolution() {
+                return megaEvolution;
+        }
+
+        public void setMegaEvolution(double megaEvolution) {
+                this.megaEvolution = megaEvolution;
+        }
+
+        public double getHeight() {
+                return height;
+        }
+
+        public void setHeight(double height) {
+                this.height = height;
+        }
+
+        public double getWeight() {
+                return weight;
+        }
+
+        public void setWeight(double weight) {
+                this.weight = weight;
+        }
+
+        public double getBmi() {
+                return bmi;
+        }
+
+        public void setBmi(double bmi) {
+                this.bmi = bmi;
+        }
 }
