@@ -1,5 +1,6 @@
 public class Pokemon {
-        private int number;
+        private int id;
+        private int numberPokedex;
         private String name;
         private String type1;
         private String type2;
@@ -14,15 +15,16 @@ public class Pokemon {
         private double mean;
         private double standardDeviation;
         private String generation;
-        private String catchRate;
+        private int catchRate;
         private double legendary;
         private double megaEvolution;   
         private double height;
         private double weight;
         private double bmi;
 
-        public Pokemon(int number, String name, String type1, String type2, String abilities, int hp, int att, int def, int spa, int spd, int spe, int bst, double mean, double standardDeviation, String generation, String catchRate, double legendary, double megaEvolution, double height, double weight, double bmi) {
-                this.number = number;
+        public Pokemon(int numberPokedex, String name, String type1, String type2, String abilities, int hp, int att, int def, int spa, int spd, int spe, int bst, double mean, double standardDeviation, String generation, int catchRate, double legendary, double megaEvolution, double height, double weight, double bmi) {
+                this.id = 0;
+                this.numberPokedex = numberPokedex;
                 this.name = name;
                 this.type1 = type1;
                 this.type2 = type2;
@@ -45,12 +47,18 @@ public class Pokemon {
                 this.bmi = bmi;
         }
         // Getters and Setters
-        public int getNumber() {
-                return number;
+        public int getId() {
+                return id;
+        }
+        public void setId(int id) {
+                this.id = id;
+        }
+        public int getNumberPokedex() {
+                return numberPokedex;
         }
 
-        public void setNumber(int number) {
-                this.number = number;
+        public void setNumberPokedex(int numberPokedex) {
+                this.numberPokedex = numberPokedex;
         }
 
         public String getName() {
@@ -165,11 +173,11 @@ public class Pokemon {
                 this.generation = generation;
         }
 
-        public String getCatchRate() {
+        public int getCatchRate() {
                 return catchRate;
         }
 
-        public void setCatchRate(String catchRate) {
+        public void setCatchRate(int catchRate) {
                 this.catchRate = catchRate;
         }
 

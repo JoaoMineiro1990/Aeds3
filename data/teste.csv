@@ -1,0 +1,5 @@
+Number,Name,Type 1,Type 2,Abilities,HP,Att,Def,Spa,Spd,Spe,BST,Mean,Standard Deviation,Generation,Catch Rate,Legendary,Mega Evolution,Height,Weight,BMI
+16,Pidgey alo,Normal,Flying,"['Big Pecks', 'Keen Eye', 'Tangled Feet']",40,45,40,35,35,56,251,41.833333333333336,7.197607627229727,01/01/1996,255,0.0,0.0,0.3,1.8,20.0
+20,Alolan Raticate,Dark,Normal,"['Gluttony', 'Hustle', 'Thick Fat']",75,71,70,40,80,77,413,68.83333333333333,13.334374959313074,18/11/2016,127,0.0,0.0,0.7,25.5,52.0
+19,Rattata,Normal,,"['Guts', 'Hustle', 'Run Away']",30,56,35,25,35,72,253,42.16666666666666,16.46629554237652,01/01/1996,255,0.0,0.0,0.3,3.5,38.9
+20,Raticate,Normal,,"['Guts', 'Hustle', 'Run Away']",55,81,60,50,70,97,413,68.83333333333333,16.15979235290135,01/01/1996,127,0.0,0.0,0.7,18.5,37.8
