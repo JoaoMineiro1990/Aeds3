@@ -192,7 +192,6 @@ public class Entrega1 {
                 long posicaoInicio = raf.getFilePointer();
                 int cova = raf.readInt();
                 int tamanhoEntrada = raf.readInt();
-                System.out.println(tamanhoEntrada);
                 if (cova == 1) {
                     raf.seek(posicaoInicio);
                     lerPokemon(raf);
@@ -207,7 +206,6 @@ public class Entrega1 {
                     break;
                 }
             }
-    
             System.out.println("\n📊 Total de Pokémon lidos: " + contadorPokemons);
             System.out.println("🕳️ Total de buracos encontrados: " + contadorBuracos);
             System.out.println("Fim do arquivo.");
@@ -230,7 +228,8 @@ public class Entrega1 {
             return null;
         }
         Pokemon p = CriarPokemonDoArquivo(raf);
-        // System.out.println("Posição atual no arquivo: " + raf.getFilePointer() + " bytes.");
+        //imprimirPokemon(p);
+        //System.out.println("Posição atual no arquivo: " + raf.getFilePointer() + " bytes.");
         return p;
     }
  
@@ -351,7 +350,8 @@ public class Entrega1 {
     
                         // Agora voltamos à posição inicial para marcar como buraco (cova = 0)
                         raf.seek(posicaoOriginal);
-                        raf.writeInt(0);
+                        int valor = 0;
+                        raf.writeInt(valor);
     
                         System.out.println("🚨 Pokémon removido! ID: " + p.getId() + " - " + p.getName());
                         return p;
@@ -382,9 +382,7 @@ public class Entrega1 {
         System.out.print("Digite o ID do Pokémon que deseja atualizar: ");
         int id = scanner.nextInt();
         scanner.nextLine();
-
         Pokemon p = encontrarEExcluirPokemon(caminho, id);
-
         if (p == null) {
             System.out.println("Erro: Pokémon não encontrado.");
             return;
@@ -420,18 +418,35 @@ public class Entrega1 {
                 return;
         }
         
-        try (DataOutputStream dos = new DataOutputStream(new FileOutputStream("data/pokemon_bytes.bin", true))) {
-            int idPokemon = PegarIdUltimo(caminho);
+        try (RandomAccessFile raf = new RandomAccessFile("data/pokemon_bytes.bin", "rw")) {
+            int idPokemon = PegarIdUltimo("data/pokemon_bytes.bin");
             p.setId(idPokemon);
             AtualizarId(idPokemon);
-            imprimirPokemon(p);
-            escreverEntrada(dos, p,"data/pokemon_bytes.bin");
+        
+            // Ir para o final do arquivo para adicionar o Pokémon atualizado
+            raf.seek(raf.length());
+        
+            // Escrever os dados do Pokémon atualizado
+            escreverEntrada(raf, p,"data/pokemon_bytes.bin");
+        
             System.out.println("Atualização concluída!\n");
         } catch (IOException e) {
             e.printStackTrace();
         }
+        
     }
-
+    private static void debugArquivo(String caminho) {
+        try (RandomAccessFile raf = new RandomAccessFile(caminho, "r")) {
+            System.out.print("Estado inicial do arquivo: ");
+            while (raf.getFilePointer() < Math.min(raf.length(), 20)) { // Lendo apenas os primeiros bytes
+                System.out.print(raf.readInt() + " ");
+            }
+            System.out.println();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    
   private static void atualizarHabilidades(Pokemon p, Scanner scanner) {
     System.out.println("\nHabilidades atuais: " + p.getAbilities());
     System.out.println("1 - Adicionar habilidade");
@@ -698,8 +713,8 @@ public class Entrega1 {
         Random random = new Random();
         
         // 90% dos Pokémon terão cova = 1 (vivos), 10% terão cova = 0 (removidos)
-        int cova = (random.nextInt(100) < 90) ? 1 : 0;
-        
+        //int cova = (random.nextInt(100) < 90) ? 1 : 0;
+        int cova = 1;
         dos.writeInt(cova);
     }
 
@@ -829,7 +844,6 @@ public class Entrega1 {
 
             switch (opcao) {
                 case 1:
-                    System.out.println("\nOpção: Atualizar um Pokémon.");
                     atualizarPokemon(scanner);
                     break;
                 case 2:
@@ -1167,29 +1181,69 @@ public class Entrega1 {
     // ================================================ //
     // ==================================================================================================
     // //
-    public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
-        CriarArquivo();
-        Pokemon ultimo ;
-        // System.out.println("Último Pokémon: " + ultimo.getName());
-        // lerTodasEntradas("data/pokemon_bytes.bin");
+    public static void entregaFinal(Scanner scanner) {
         System.out.println("🚀 Iniciando o programa...");
-        ultimo = lerUltimoPokemon("data\\pokemon_bytes.bin");
-        System.out.println(ultimo.getName());
+        
+        // Criando arquivo inicial
+        System.out.println("📁 Criando o arquivo...");
+        CriarArquivo();
+    
+        // Lendo todas as entradas iniciais
+        System.out.println("📖 Lendo todas as entradas iniciais...");
+        lerTodasEntradas("data/pokemon_bytes.bin");
+    
+        // Lendo o último Pokémon antes das alterações
+        System.out.println("🔍 Lendo o último Pokémon...");
+        Pokemon ultimo = lerUltimoPokemon("data/pokemon_bytes.bin");
+        System.out.println("Último Pokémon antes das alterações: " + ultimo.getName());
+    
+        // Lendo novamente todas as entradas
+        lerTodasEntradas("data/pokemon_bytes.bin");
+    
+        // Criando novo Pokémon
+        System.out.println("📝 Criando um novo Pokémon...");
         CREATE();
-        ultimo = lerUltimoPokemon("data\\pokemon_bytes.bin");
-        System.out.println(ultimo.getName());
-        // lerTodasEntradas("data/pokemon_bytes.bin");
-        // ultimo = lerUltimoPokemon("data\\pokemon_bytes.bin");
-        // System.out.println("Último Pokémon: " + ultimo.getName());
-        // READ(scanner);
+    
+        // Lendo o último Pokémon após criação
+        ultimo = lerUltimoPokemon("data/pokemon_bytes.bin");
+        System.out.println("Último Pokémon após criação: " + ultimo.getName());
+    
+        // Lendo todas as entradas novamente
+        lerTodasEntradas("data/pokemon_bytes.bin");
+    
+        // Lendo os Pokémon do arquivo conforme entrada do usuário
+        System.out.println("📖 Lendo Pokémon do arquivo com interação...");
+        READ(scanner);
+    
+        // Lendo todas as entradas mais uma vez
+        lerTodasEntradas("data/pokemon_bytes.bin");
+    
+        // Verificando buracos no arquivo
+        System.out.println("🕵️ Verificando buracos no arquivo...");
         verificarBuracos();
-        // UPDATE(scanner);
-        // lerTodasEntradas("data/pokemon_bytes.bin");
-        // ordenarArquivoFinal();
-        // lerPokemonsArquivoTemporario("arquivofinal.bin");
+    
+        // Atualizando Pokémon
+        System.out.println("✏️ Atualizando um Pokémon...");
+        UPDATE(scanner);
+    
+        // Lendo todas as entradas após atualização
+        lerTodasEntradas("data/pokemon_bytes.bin");
+    
+        // Ordenando o arquivo final
+        System.out.println("📂 Ordenando arquivo final...");
+        ordenarArquivoFinal();
+    
+        // Lendo os Pokémon do arquivo final ordenado
+        System.out.println("📖 Lendo Pokémon do arquivo final ordenado...");
+        lerPokemonsArquivoTemporario("arquivofinal.bin");
+    
+        System.out.println("✅ Processo concluído!");
+    }
+    
+        public static void main(String[] args) {
+            Scanner scanner = new Scanner(System.in);
+            entregaFinal(scanner);
         scanner.close();
-
     }
 
 }
