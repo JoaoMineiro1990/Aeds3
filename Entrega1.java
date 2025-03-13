@@ -1,5 +1,10 @@
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.EOFException;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
@@ -7,7 +12,10 @@ import java.io.RandomAccessFile;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
+import java.util.PriorityQueue;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.regex.Matcher;
@@ -21,11 +29,8 @@ import java.time.ZoneId;
 public class Entrega1 {
 
     // ==================================================================================================
-    // //
     // ======================================== MÉTODOS Criacao
-    // ========================================= //
     // ==================================================================================================
-    // //
 
     /**
      * Cria um arquivo binário a partir de um arquivo CSV.
@@ -46,7 +51,7 @@ public class Entrega1 {
                 Pokemon p = criarPokemonDoSplit(Separado);
                 p.setId(ultimoId);
                 ultimoId++;
-                escreverEntrada(dos, p);
+                escreverEntrada(dos, p,"data/pokemon_bytes.bin");
             }
             AtualizarId(ultimoId);
         } catch (IOException e) {
@@ -123,59 +128,88 @@ public class Entrega1 {
     // ======================================= //
     // ================================================================================================
     // //
-
     private static void verificarBuracos() {
         List<String> buracos = new ArrayList<>();
-
+    
         try (RandomAccessFile raf = new RandomAccessFile("data/pokemon_bytes.bin", "r")) {
             raf.seek(0);
             int idInicial = raf.readInt();
             System.out.println("ID inicial do arquivo: " + idInicial);
-
+    
             while (raf.getFilePointer() < raf.length()) {
                 long posicaoAntes = raf.getFilePointer();
-                int cova = raf.readInt();
-                int tamanhoEntrada = raf.readInt();
-
-                if (cova == 0) {
-                    long posicaoDepoisDoTamanho = raf.getFilePointer();
-                    int idPokemon = raf.readInt();
-                    int numeroPokedex = raf.readInt();
-                    String nomePokemon = raf.readUTF();
-                    String buracoInfo = "Buraco encontrado -> ID: " + idPokemon +
-                            ", Pokédex: " + numeroPokedex +
-                            ", Nome: " + nomePokemon +
-                            ", Tamanho: " + tamanhoEntrada + " bytes.";
-                    buracos.add(buracoInfo);
-                    raf.seek(posicaoDepoisDoTamanho);
-                    raf.seek(raf.getFilePointer() + tamanhoEntrada - 4);
-                } else {
-                    raf.seek(posicaoAntes + tamanhoEntrada + 4);
+                
+                // Se estamos a menos de 8 bytes do final do arquivo, paramos a leitura para evitar erro
+                if (raf.length() - posicaoAntes < 8) {
+                    System.out.println("✅ Arquivo terminou corretamente. Nenhuma entrada inválida no final.");
+                    break;
                 }
+    
+                int cova = raf.readInt();  // Lê a cova
+                int tamanhoEntrada = raf.readInt();  // Lê o tamanho do Pokémon
+    
+                // 🔹 Proteção contra leitura inválida (caso tamanho seja inconsistente)
+                if (tamanhoEntrada <= 0 || (posicaoAntes + tamanhoEntrada + 4) > raf.length()) {
+                    System.out.println("❌ ERRO: Entrada inválida na posição " + posicaoAntes + ". Pulando...");
+                    break;
+                }
+    
+                if (cova == 0) {
+                    // É um buraco, então registramos
+                    buracos.add("Buraco detectado na posição " + posicaoAntes + " com tamanho " + tamanhoEntrada + " bytes.");
+                }
+    
+                // Pula para a próxima entrada, garantindo leitura sequencial
+                raf.seek(posicaoAntes + tamanhoEntrada + 4);
             }
+    
         } catch (IOException e) {
+            System.out.println("❌ ERRO ao abrir o arquivo.");
             e.printStackTrace();
         }
-
+    
+        // Exibe os buracos encontrados
         if (buracos.isEmpty()) {
-            System.out.println("Nenhum buraco encontrado no arquivo.");
+            System.out.println("✅ Nenhum buraco encontrado no arquivo.");
         } else {
-            System.out.println("\nLista de buracos encontrados:");
+            System.out.println("\n📌 Lista de buracos encontrados:");
             for (String buraco : buracos) {
                 System.out.println(buraco);
             }
         }
-    }
-
+    } 
+    
     private static void lerTodasEntradas(String caminhoArquivoBinario) {
         try (RandomAccessFile raf = new RandomAccessFile(caminhoArquivoBinario, "r")) {
+            raf.seek(0);
             int id = raf.readInt();
             System.out.println("ID inicial do arquivo: " + id);
-
+    
+            int contadorPokemons = 0;
+            int contadorBuracos = 0;
+    
             while (raf.getFilePointer() < (raf.length() - 4)) {
-                lerPokemon(raf);
+                long posicaoInicio = raf.getFilePointer();
+                int cova = raf.readInt();
+                int tamanhoEntrada = raf.readInt();
+                System.out.println(tamanhoEntrada);
+                if (cova == 1) {
+                    raf.seek(posicaoInicio);
+                    lerPokemon(raf);
+                    contadorPokemons++;
+                } else if (cova == 0) {
+                    // Detecta buraco e pula corretamente
+                    contadorBuracos++;
+                    System.out.println("⚠ Buraco encontrado na posição " + posicaoInicio + ", tamanho: " + tamanhoEntrada + " bytes.");
+                    raf.seek(posicaoInicio + tamanhoEntrada + 4);
+                } else {
+                    System.out.println("❌ ERRO: Valor inesperado para cova: " + cova + " na posição " + posicaoInicio);
+                    break;
+                }
             }
-
+    
+            System.out.println("\n📊 Total de Pokémon lidos: " + contadorPokemons);
+            System.out.println("🕳️ Total de buracos encontrados: " + contadorBuracos);
             System.out.println("Fim do arquivo.");
         } catch (IOException e) {
             e.printStackTrace();
@@ -184,9 +218,8 @@ public class Entrega1 {
 
     private static Pokemon lerPokemon(RandomAccessFile raf) throws IOException {
         int cova = raf.readInt();
-        int tamanhoEntrada;
-
-        if (cova == 0) {
+            if (cova == 0) {
+            int tamanhoEntrada;
             tamanhoEntrada = raf.readInt();
             long posicaoAntes = raf.getFilePointer();
             System.out.println(" Entrada removida. Posição antes do pulo: " + posicaoAntes + " bytes. Pulando "
@@ -197,11 +230,10 @@ public class Entrega1 {
             return null;
         }
         Pokemon p = CriarPokemonDoArquivo(raf);
-        imprimirPokemon(p);
-        System.out.println("Posição atual no arquivo: " + raf.getFilePointer() + " bytes.");
+        // System.out.println("Posição atual no arquivo: " + raf.getFilePointer() + " bytes.");
         return p;
     }
-
+ 
     private static Pokemon lerUltimoPokemon(String caminhoArquivoBinario) {
         Pokemon ultimoPokemon = new Pokemon(0, "", "", "", "", 0, 0, 0, 0, 0, 0, 0, 0.0, 0.0, "", 0, 0.0, 0.0, 0.0, 0.0,
                 0.0);
@@ -260,38 +292,83 @@ public class Entrega1 {
         return null;
     }
 
-    private static Pokemon lerPokemonPorNumeroeMatar(String caminhoArquivoBinario, int numeroEscolhido) {
+    private static Pokemon encontrarEExcluirPokemon(String caminhoArquivoBinario, int numeroEscolhido) {
         try (RandomAccessFile raf = new RandomAccessFile(caminhoArquivoBinario, "rw")) {
             raf.seek(0);
-            raf.readInt();
+            raf.readInt(); // Pula o ID inicial do arquivo
+            
             int contador = 0;
-
-            for (int i = 0; i < numeroEscolhido; i++) {
-                while (raf.getFilePointer() < raf.length()) {
-                    long posicaoOriginal = raf.getFilePointer(); 
-                    int cova = raf.readInt();
-                    int tamanhoEntrada = raf.readInt();
-
-                    if (cova == 1) {
-                        contador++;
-                        if (contador == numeroEscolhido) {
-                            System.out.println("Pokémon encontrado na posição: " + raf.getFilePointer());
-                            raf.seek(raf.getFilePointer() - 8);
-                            Pokemon p = lerPokemon(raf);
-                            raf.seek(posicaoOriginal);
-                            raf.writeInt(0);
-                            return p;
-                        }
-                    }
-                    raf.seek(posicaoOriginal + tamanhoEntrada + 4);
+    
+            while (raf.getFilePointer() < raf.length()) {
+                long posicaoOriginal = raf.getFilePointer();
+                int cova = raf.readInt(); // Lê a cova (0 = buraco, 1 = Pokémon válido)
+                int tamanhoEntrada = raf.readInt(); // Lê o tamanho da entrada
+                
+                // Proteção contra erros de leitura no final do arquivo
+                if (tamanhoEntrada <= 0 || (posicaoOriginal + tamanhoEntrada + 8) > raf.length()) {
+                    System.out.println("❌ ERRO: Entrada inválida na posição " + posicaoOriginal + ". Pulando...");
+                    break;
                 }
+    
+                if (cova == 1) { 
+                    contador++;
+                    if (contador == numeroEscolhido) {
+                        System.out.println("📍 Pokémon encontrado na posição: " + posicaoOriginal);
+    
+                        // Criando o Pokémon diretamente aqui antes de removê-lo
+                        Pokemon p = new Pokemon(0, "", "", "", "", 0, 0, 0, 0, 0, 0, 0, 0.0, 0.0, "", 0, 0.0, 0.0, 0.0, 0.0, 0.0);
+                        p.setId(raf.readInt());
+                        p.setNumberPokedex(raf.readInt());
+                        p.setName(raf.readUTF());
+                        p.setType1(raf.readUTF());
+                        p.setType2(raf.readUTF());
+    
+                        int habilidades = raf.readInt();
+                        StringBuilder habilidadesStr = new StringBuilder();
+                        for (int i = 0; i < habilidades; i++) {
+                            habilidadesStr.append(raf.readUTF());
+                            if (i < habilidades - 1)
+                                habilidadesStr.append(", ");
+                        }
+                        p.setAbilities(habilidadesStr.toString());
+    
+                        p.setHp(raf.readInt());
+                        p.setAtt(raf.readInt());
+                        p.setDef(raf.readInt());
+                        p.setSpa(raf.readInt());
+                        p.setSpd(raf.readInt());
+                        p.setSpe(raf.readInt());
+                        p.setBst(raf.readInt());
+                        p.setMean(raf.readDouble());
+                        p.setStandardDeviation(raf.readDouble());
+                        p.setGeneration(converterEpochParaData(raf.readLong()));
+                        p.setCatchRate(raf.readInt());
+                        p.setLegendary(raf.readDouble());
+                        p.setMegaEvolution(raf.readDouble());
+                        p.setHeight(raf.readDouble());
+                        p.setWeight(raf.readDouble());
+                        p.setBmi(raf.readDouble());
+    
+                        // Agora voltamos à posição inicial para marcar como buraco (cova = 0)
+                        raf.seek(posicaoOriginal);
+                        raf.writeInt(0);
+    
+                        System.out.println("🚨 Pokémon removido! ID: " + p.getId() + " - " + p.getName());
+                        return p;
+                    }
+                }
+    
+                // Pular para a próxima entrada
+                raf.seek(posicaoOriginal + tamanhoEntrada + 4);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println("Nenhum Pokémon encontrado com esse número.");
+    
+        System.out.println("❌ Nenhum Pokémon encontrado com esse número.");
         return null;
     }
+    
 
     // ==================================================================================================
     // //
@@ -306,7 +383,7 @@ public class Entrega1 {
         int id = scanner.nextInt();
         scanner.nextLine();
 
-        Pokemon p = lerPokemonPorNumeroeMatar(caminho, id);
+        Pokemon p = encontrarEExcluirPokemon(caminho, id);
 
         if (p == null) {
             System.out.println("Erro: Pokémon não encontrado.");
@@ -348,7 +425,7 @@ public class Entrega1 {
             p.setId(idPokemon);
             AtualizarId(idPokemon);
             imprimirPokemon(p);
-            escreverEntrada(dos, p);
+            escreverEntrada(dos, p,"data/pokemon_bytes.bin");
             System.out.println("Atualização concluída!\n");
         } catch (IOException e) {
             e.printStackTrace();
@@ -485,90 +562,144 @@ public class Entrega1 {
     // ======================================== //
     // =================================================================================================
     // //
+    private static void escreverEntrada(RandomAccessFile raf, Pokemon p, String caminhoArquivoBinario) throws IOException {
+    long posicao = raf.getFilePointer(); // Posição antes de escrever
 
-    private static void escreverPokemon(DataOutputStream dos, Pokemon p) throws IOException {
+    raf.writeInt(1); // Cova = 1 (entrada válida)
+
+    // Criação de um buffer temporário para calcular tamanho da entrada
+    ByteArrayOutputStream byteArrayStream = new ByteArrayOutputStream();
+    DataOutputStream tempStream = new DataOutputStream(byteArrayStream);
+
+    tempStream.writeInt(p.getId());
+    tempStream.writeInt(p.getNumberPokedex());
+    tempStream.writeUTF(p.getName());
+    tempStream.writeUTF(p.getType1());
+    tempStream.writeUTF(p.getType2());
+
+    String[] habilidades = p.getAbilities().split(", ");
+    tempStream.writeInt(habilidades.length);
+    for (String habilidade : habilidades) {
+        tempStream.writeUTF(habilidade);
+    }
+
+    tempStream.writeInt(p.getHp());
+    tempStream.writeInt(p.getAtt());
+    tempStream.writeInt(p.getDef());
+    tempStream.writeInt(p.getSpa());
+    tempStream.writeInt(p.getSpd());
+    tempStream.writeInt(p.getSpe());
+    tempStream.writeInt(p.getBst());
+    tempStream.writeDouble(p.getMean());
+    tempStream.writeDouble(p.getStandardDeviation());
+    tempStream.writeLong(EscreverHoraBytes(p.getGeneration()));
+    tempStream.writeInt(p.getCatchRate());
+    tempStream.writeDouble(p.getLegendary());
+    tempStream.writeDouble(p.getMegaEvolution());
+    tempStream.writeDouble(p.getHeight());
+    tempStream.writeDouble(p.getWeight());
+    tempStream.writeDouble(p.getBmi());
+
+    // Fecha o stream temporário e pega o tamanho real da entrada
+    tempStream.flush();
+    byte[] entradaBytes = byteArrayStream.toByteArray();
+    int tamanhoEntrada = entradaBytes.length;
+
+    // Escreve o tamanho da entrada antes de escrever os dados
+    raf.writeInt(tamanhoEntrada);
+    raf.write(entradaBytes); // Escreve os bytes reais da entrada
+
+    System.out.println("✅ Pokémon escrito na posição " + posicao + " (tamanho: " + tamanhoEntrada + " bytes)");
+}
+
+    private static void escreverPokemon(DataOutputStream dos, Pokemon p, String caminhoArquivo) throws IOException {
         long posicaoInicio = dos.size();
         dos.writeInt(0);
         int bytesEscritos = Integer.BYTES;
+        
         dos.writeInt(p.getId());
         bytesEscritos += Integer.BYTES;
-
+    
         dos.writeInt(p.getNumberPokedex());
         bytesEscritos += Integer.BYTES;
-
+    
         dos.writeUTF(p.getName());
         bytesEscritos += p.getName().getBytes("UTF-8").length + 2;
-
+    
         dos.writeUTF(p.getType1());
         bytesEscritos += p.getType1().getBytes("UTF-8").length + 2;
-
+    
         dos.writeUTF(p.getType2());
         bytesEscritos += p.getType2().getBytes("UTF-8").length + 2;
-
+    
         bytesEscritos += escreverHabilidades(dos, p.getAbilities());
-
+    
         dos.writeInt(p.getHp());
         bytesEscritos += Integer.BYTES;
-
+    
         dos.writeInt(p.getAtt());
         bytesEscritos += Integer.BYTES;
-
+    
         dos.writeInt(p.getDef());
         bytesEscritos += Integer.BYTES;
-
+    
         dos.writeInt(p.getSpa());
         bytesEscritos += Integer.BYTES;
-
+    
         dos.writeInt(p.getSpd());
         bytesEscritos += Integer.BYTES;
-
+    
         dos.writeInt(p.getSpe());
         bytesEscritos += Integer.BYTES;
-
+    
         dos.writeInt(p.getBst());
         bytesEscritos += Integer.BYTES;
-
+    
         dos.writeDouble(truncarDouble(p.getMean(), 2));
         bytesEscritos += Double.BYTES;
-
+    
         dos.writeDouble(truncarDouble(p.getStandardDeviation(), 2));
         bytesEscritos += Double.BYTES;
-
+    
         dos.writeLong(EscreverHoraBytes(p.getGeneration()));
         bytesEscritos += Long.BYTES;
-
+    
         dos.writeInt(p.getCatchRate());
         bytesEscritos += Integer.BYTES;
-
+    
         dos.writeDouble(truncarDouble(p.getLegendary(), 2));
         bytesEscritos += Double.BYTES;
-
+    
         dos.writeDouble(truncarDouble(p.getMegaEvolution(), 2));
         bytesEscritos += Double.BYTES;
-
+    
         dos.writeDouble(truncarDouble(p.getHeight(), 2));
         bytesEscritos += Double.BYTES;
-
+    
         dos.writeDouble(truncarDouble(p.getWeight(), 2));
         bytesEscritos += Double.BYTES;
-
+    
         dos.writeDouble(truncarDouble(p.getBmi(), 2));
         bytesEscritos += Double.BYTES;
-
-        try (RandomAccessFile raf = new RandomAccessFile("data/pokemon_bytes.bin", "rw")) {
+    
+        // Agora, ele escreve no arquivo correto passado como parâmetro
+        try (RandomAccessFile raf = new RandomAccessFile(caminhoArquivo, "rw")) {
             raf.seek(posicaoInicio);
             raf.writeInt(bytesEscritos);
         }
     }
-
-    private static void escreverEntrada(DataOutputStream dos, Pokemon p) throws IOException {
+    
+    private static void escreverEntrada(DataOutputStream dos, Pokemon p,String caminho) throws IOException {
         escreverCova(dos);
-        escreverPokemon(dos, p);
+        escreverPokemon(dos, p,caminho);
     }
 
     private static void escreverCova(DataOutputStream dos) throws IOException {
         Random random = new Random();
-        int cova = (random.nextInt(100) < 5) ? 0 : 1;
+        
+        // 90% dos Pokémon terão cova = 1 (vivos), 10% terão cova = 0 (removidos)
+        int cova = (random.nextInt(100) < 90) ? 1 : 0;
+        
         dos.writeInt(cova);
     }
 
@@ -605,46 +736,51 @@ public class Entrega1 {
     // ============================================ //
     // ==================================================================================================
     // //
-
     public static void CREATE() {
         String caminhoArquivoCSV = "data/dados_modificados.csv";
         String caminhoArquivoBinario = "data/pokemon_bytes.bin";
-
+    
         try (BufferedReader br = new BufferedReader(new FileReader(caminhoArquivoCSV));
-                DataOutputStream dos = new DataOutputStream(new FileOutputStream(caminhoArquivoBinario, true))) {
-
-            br.readLine();
+             RandomAccessFile raf = new RandomAccessFile(caminhoArquivoBinario, "rw")) {
+    
+            br.readLine(); // Ignora o cabeçalho
             String linhaAleatoria = null;
-            String linhaAtual = "";
+            String linhaAtual;
             Random random = new Random();
             int linhaIndex = 0;
+    
             while ((linhaAtual = br.readLine()) != null) {
                 linhaIndex++;
                 if (random.nextInt(linhaIndex) == 0) {
                     linhaAleatoria = linhaAtual;
                 }
             }
+    
             if (linhaAleatoria == null) {
-                System.out.println("O arquivo CSV está vazio.");
+                System.out.println("❌ O arquivo CSV está vazio.");
                 return;
             }
+    
             linhaAleatoria = posicoesVazias(linhaAleatoria);
             List<String> Separado = SplitInteligente(linhaAleatoria);
-
-            int ultimoId = PegarIdUltimo(caminhoArquivoBinario);
             Pokemon p = criarPokemonDoSplit(Separado);
-
+    
+            // Pega o último ID de forma segura
+            int ultimoId = PegarIdUltimo(caminhoArquivoBinario);
             setIdArquivo(p, ultimoId);
-            escreverEntrada(dos, p);
+    
+            // 📌 Garante que o novo Pokémon seja escrito corretamente no final do arquivo
+            raf.seek(raf.length());
+            escreverEntrada(raf, p, caminhoArquivoBinario);
             AtualizarId(ultimoId);
-
-            System.out.println("Novo Pokémon adicionado com sucesso!");
-
+    
+            System.out.println("✅ Novo Pokémon adicionado com sucesso!");
+    
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
+    
     public static void READ(Scanner scanner) {
         int opcao;
 
@@ -710,24 +846,350 @@ public class Entrega1 {
 
     }
 
+    // ================================================================================================== //
+    // ======================================== MÉTODO Organizacao ============================================ //
+    // ================================================================================================== //
+
+    private static void criarArquivosTemporarios(int numArquivos) {
+        for (int i = 1; i <= numArquivos; i++) {
+            String nomeArquivo = "temp" + i + ".bin";
+            try {
+                File file = new File(nomeArquivo);
+                if (file.exists()) {
+                    file.delete();
+                }
+                file.createNewFile(); 
+                System.out.println("Arquivo criado: " + nomeArquivo);
+            } catch (IOException e) {
+                System.out.println("Erro ao criar o arquivo: " + nomeArquivo);
+                e.printStackTrace();
+            }
+        }}
+        
+    private static void intercalarArquivosTemporarios(List<String> arquivosTemporarios, String caminhoArquivoFinal) {
+            try (DataOutputStream dosFinal = new DataOutputStream(new FileOutputStream(caminhoArquivoFinal))) {
+                System.out.println("\n=== 🔄 Iniciando Intercalação com Replacement Selection ===");
+        
+                dosFinal.writeInt(0);
+                List<RandomAccessFile> arquivos = new ArrayList<>();
+                for (String arquivo : arquivosTemporarios) {
+                    arquivos.add(new RandomAccessFile(arquivo, "r"));
+                }
+        
+                PriorityQueue<PokemonEntry> minHeap = new PriorityQueue<>(Comparator.comparing(entry -> entry.pokemon.getName()));
+                PriorityQueue<PokemonEntry> nextRunHeap = new PriorityQueue<>(Comparator.comparing(entry -> entry.pokemon.getName()));
+        
+                // 🔹 Adicionamos até 7 Pokémon no heap principal
+                int heapSize = 7;
+                for (int i = 0; i < arquivos.size(); i++) {
+                    RandomAccessFile raf = arquivos.get(i);
+                    if (raf.getFilePointer() < raf.length() && minHeap.size() < heapSize) {
+                        Pokemon p = lerPokemon(raf);
+                        if (p != null) {
+                            minHeap.add(new PokemonEntry(p, i));
+                        }
+                    }
+                }
+        
+                int contadorIteracao = 0;
+                Pokemon ultimoSalvo = null;
+        
+                while (!minHeap.isEmpty() || !nextRunHeap.isEmpty()) {
+                    int pokemonRemovidos = 0;
+        
+                    // 🔹 Enquanto houver Pokémon no heap principal
+                    while (!minHeap.isEmpty()) {
+                        PokemonEntry menorEntrada = minHeap.poll();
+                        Pokemon menorPokemon = menorEntrada.pokemon;
+                        int origemArquivo = menorEntrada.origemArquivo;
+        
+                        // 🔹 Escrevemos o menor Pokémon no arquivo final
+                        escreverEntrada(dosFinal, menorPokemon, caminhoArquivoFinal);
+                        pokemonRemovidos++;
+        
+                        // 🔹 O Pokémon removido se torna o último salvo
+                        ultimoSalvo = menorPokemon;
+        
+                        // 🔹 Lemos o próximo Pokémon do mesmo arquivo
+                        RandomAccessFile raf = arquivos.get(origemArquivo);
+                        if (raf.getFilePointer() < raf.length()) {
+                            Pokemon proximoPokemon = lerPokemon(raf);
+                            if (proximoPokemon != null) {
+                                if (ultimoSalvo == null || proximoPokemon.getName().compareTo(ultimoSalvo.getName()) >= 0) {
+                                    // 🔹 Se o novo Pokémon for maior ou igual, continua na run atual
+                                    minHeap.add(new PokemonEntry(proximoPokemon, origemArquivo));
+                                } else {
+                                    // 🔹 Se for menor, entra na heap para a próxima run
+                                    nextRunHeap.add(new PokemonEntry(proximoPokemon, origemArquivo));
+                                }
+                            }
+                        }
+                    }
+        
+                    contadorIteracao++;
+                    System.out.println("🔄 Iteração " + contadorIteracao + ": " + pokemonRemovidos + " Pokémon removidos da heap.");
+        
+                    // 🔄 Se a heap principal estiver vazia, iniciamos uma nova run com os Pokémon do nextRunHeap
+                    if (!nextRunHeap.isEmpty()) {
+                        System.out.println("🔄 Iniciando nova run com Pokémon remanescentes...");
+                        minHeap.addAll(nextRunHeap);
+                        nextRunHeap.clear();
+                        ultimoSalvo = null; // 🔄 Resetamos para permitir novas comparações
+                    }
+                }
+        
+                // 🔹 Fechamos os arquivos temporários
+                for (RandomAccessFile raf : arquivos) {
+                    raf.close();
+                }
+        
+                System.out.println("\n✅ Intercalação concluída com Replacement Selection! Dados salvos em: " + caminhoArquivoFinal);
+        
+            } catch (IOException e) {
+                System.out.println("❌ ERRO ao criar o arquivo final.");
+                e.printStackTrace();
+            }
+        }
+
+    private static void distribuirParaArquivosTemporarios(String caminhoArquivoBinario, int numArquivosTemp) {
+    try (RandomAccessFile raf = new RandomAccessFile(caminhoArquivoBinario, "r")) {
+        raf.seek(0);
+        raf.readInt();
+
+        List<DataOutputStream> arquivosTemporarios = new ArrayList<>();
+        List<String> nomesArquivosTemp = new ArrayList<>();
+        int[] contadores = new int[numArquivosTemp]; // Contadores para cada arquivo
+        int totalLidos = 0; // Contador total de Pokémon lidos
+
+        for (int i = 1; i <= numArquivosTemp; i++) {
+            String nomeArquivo = "temp" + i + ".bin";
+            arquivosTemporarios.add(new DataOutputStream(new FileOutputStream(nomeArquivo)));
+            nomesArquivosTemp.add(nomeArquivo);
+        }
+
+        int arquivoAtual = 0;
+        int heapSize = 7;  // Número máximo de Pokémon no heap
+        PriorityQueue<Pokemon> minHeap = new PriorityQueue<>(Comparator.comparing(Pokemon::getName));
+        PriorityQueue<Pokemon> nextRunHeap = new PriorityQueue<>(Comparator.comparing(Pokemon::getName));
+
+        // 🔹 Preenchemos o heap inicial com até 7 Pokémon
+        while (raf.getFilePointer() < raf.length() && minHeap.size() < heapSize) {
+            Pokemon p = lerPokemon(raf);
+            if (p != null) {
+                minHeap.add(p);
+                totalLidos++;
+            }
+        }
+
+        Pokemon ultimoSalvo = null;
+
+        while (!minHeap.isEmpty() || !nextRunHeap.isEmpty()) {
+            List<Pokemon> bufferPokemons = new ArrayList<>();
+
+            // 🔹 Processamos todos os Pokémon do heap principal antes de trocar de run
+            while (!minHeap.isEmpty()) {
+                Pokemon menorPokemon = minHeap.poll();
+                bufferPokemons.add(menorPokemon);
+                ultimoSalvo = menorPokemon;
+
+                // 🔹 Pegamos o próximo Pokémon do arquivo e decidimos se continua na mesma run
+                if (raf.getFilePointer() < raf.length()) {
+                    Pokemon proximoPokemon = lerPokemon(raf);
+                    if (proximoPokemon != null) {
+                        totalLidos++;
+                        if (ultimoSalvo == null || proximoPokemon.getName().compareTo(ultimoSalvo.getName()) >= 0) {
+                            minHeap.add(proximoPokemon);
+                        } else {
+                            nextRunHeap.add(proximoPokemon);
+                        }
+                    }
+                }
+            }
+
+            // 🔹 Salvamos os Pokémon processados no arquivo temporário atual
+            if (!bufferPokemons.isEmpty()) {
+                System.out.println("📂 Salvando " + bufferPokemons.size() + " Pokémon no arquivo: " + nomesArquivosTemp.get(arquivoAtual));
+                salvarPokemonsOrdenados(bufferPokemons, arquivosTemporarios.get(arquivoAtual), nomesArquivosTemp.get(arquivoAtual));
+                contadores[arquivoAtual] += bufferPokemons.size();
+                arquivoAtual = (arquivoAtual + 1) % numArquivosTemp;
+            }
+
+            // 🔄 Se a heap principal estiver vazia, iniciamos uma nova run com os Pokémon do nextRunHeap
+            if (!nextRunHeap.isEmpty()) {
+                System.out.println("🔄 Iniciando nova run com Pokémon remanescentes...");
+                minHeap.addAll(nextRunHeap);
+                nextRunHeap.clear();
+                ultimoSalvo = null;  // 🔄 Resetamos para permitir novas comparações
+            }
+        }
+
+        for (DataOutputStream dos : arquivosTemporarios) {
+            dos.close();
+        }
+
+        // Exibir o número total de Pokémon lidos e salvos em cada arquivo temporário
+        System.out.println("\n✅ Distribuição concluída com Replacement Selection!");
+        System.out.println("📊 Total de Pokémon lidos: " + totalLidos);
+        for (int i = 0; i < numArquivosTemp; i++) {
+            System.out.println("📂 " + nomesArquivosTemp.get(i) + " contém " + contadores[i] + " Pokémon.");
+        }
+
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+}
+
+    private static void ordenarArquivoFinal() {
+            List<String> arquivosTemporarios = Arrays.asList("temp1.bin", "temp2.bin", "temp3.bin", "temp4.bin");
+        
+            criarArquivosTemporarios(4);  // Criamos os arquivos vazios antes da primeira distribuição
+            String caminhoArquivoAtual = "data/pokemon_bytes.bin"; // Começamos a partir do arquivo original
+            int iteracao = 1;
+            while (true) {
+ 
+                System.out.println("\n🔄 Iteração " + iteracao + ": Distribuindo Pokémon...");
+                distribuirParaArquivosTemporarios(caminhoArquivoAtual, 4);
+                System.out.println("\n🔄 Iteração " + iteracao + ": Intercalando arquivos...");
+                intercalarArquivosTemporarios(arquivosTemporarios, "arquivofinal.bin");
+        
+                // 📌 Verifica se os arquivos temporários além do temp1.bin estão vazios
+                if (arquivosTemporarios.stream().skip(1).allMatch(arquivo -> new File(arquivo).length() == 0)) {
+                    System.out.println("✅ Ordenação concluída! Pokémon organizados corretamente.");
+                    break;
+                }
+        
+                // Atualizamos o caminho do arquivo para a próxima rodada
+                caminhoArquivoAtual = "arquivofinal.bin";
+                iteracao++;
+            }
+        }
+
+    private static void lerPokemonsArquivoTemporario(String caminhoArquivo) {
+            try (RandomAccessFile raf = new RandomAccessFile(caminhoArquivo, "r")) {
+                
+                raf.seek(0);
+                raf.readInt();
+                long tamanhoArquivo = raf.length(); // 📏 Tamanho total do arquivo
+        
+                while (raf.getFilePointer() < tamanhoArquivo) {
+                    if (raf.getFilePointer() >= tamanhoArquivo - 4) {
+                        System.out.println("🏁 Fim do arquivo detectado! Nenhum Pokémon restante para ler.");
+                        break;
+                    }
+                    raf.readInt(); 
+                    int tamanhoEntrada = raf.readInt(); 
+                    long posicaoAtual = raf.getFilePointer(); 
+                    long bytesRestantes = tamanhoArquivo - posicaoAtual; 
+                    if (tamanhoEntrada > bytesRestantes) {
+                        tamanhoEntrada = (int) bytesRestantes;
+                    }
+                    if (tamanhoEntrada <= 0 || (posicaoAtual + tamanhoEntrada) > tamanhoArquivo) {
+                        return;
+                    }
+                    byte[] dados = new byte[tamanhoEntrada];                
+                    try { 
+                        raf.readFully(dados);
+                    } catch (IOException e) {
+                        break;
+                    }
+                    Pokemon p = reconstruirPokemonDeBytes(dados);
+                    System.out.println("📖 Pokémon lido: " + p.getName());
+                    raf.seek(raf.getFilePointer() - 4);
+                }
+        
+                System.out.println("🏁 Fim do arquivo: " + caminhoArquivo);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        
+    private static Pokemon reconstruirPokemonDeBytes(byte[] dados) {
+            try (ByteArrayInputStream bais = new ByteArrayInputStream(dados);
+                 DataInputStream dis = new DataInputStream(bais)) {
+        
+                Pokemon p = new Pokemon(0, "", "", "", "", 0, 0, 0, 0, 0, 0, 0, 0.0, 0.0, "", 0, 0.0, 0.0, 0.0, 0.0, 0.0);
+        
+                p.setId(dis.readInt());
+                p.setNumberPokedex(dis.readInt());
+                p.setName(dis.readUTF());
+                p.setType1(dis.readUTF());
+                p.setType2(dis.readUTF());
+        
+                int habilidades = dis.readInt();
+                StringBuilder habilidadesStr = new StringBuilder();
+                for (int i = 0; i < habilidades; i++) {
+                    habilidadesStr.append(dis.readUTF());
+                    if (i < habilidades - 1) habilidadesStr.append(", ");
+                }
+                p.setAbilities(habilidadesStr.toString());
+        
+                p.setHp(dis.readInt());
+                p.setAtt(dis.readInt());
+                p.setDef(dis.readInt());
+                p.setSpa(dis.readInt());
+                p.setSpd(dis.readInt());
+                p.setSpe(dis.readInt());
+                p.setBst(dis.readInt());
+                p.setMean(dis.readDouble());
+                p.setStandardDeviation(dis.readDouble());
+                long epochTime = dis.readLong();
+                p.setGeneration(converterEpochParaData(epochTime));
+        
+                p.setCatchRate(dis.readInt());
+                p.setLegendary(dis.readDouble());
+                p.setMegaEvolution(dis.readDouble());
+                p.setHeight(dis.readDouble());
+                p.setWeight(dis.readDouble());
+                p.setBmi(dis.readDouble());
+        
+                return p;
+            } catch (IOException e) {
+                System.out.println("❌ ERRO ao reconstruir Pokémon dos bytes.");
+                e.printStackTrace();
+                return null;
+            }
+        }
+        
+    private static void salvarPokemonsOrdenados(List<Pokemon> pokemons, DataOutputStream dos, String caminhoArquivoTemp) {
+               try {
+                for (Pokemon p : pokemons) {
+                    escreverEntrada(dos, p, caminhoArquivoTemp); 
+                }
+            } catch (IOException e) {
+                System.out.println("❌ ERRO ao salvar Pokémon no arquivo temporário.");
+                e.printStackTrace();
+            }
+        }
+    
     // ==================================================================================================
     // //
     // ============================================ MAIN
     // ================================================ //
     // ==================================================================================================
     // //
-
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         CriarArquivo();
-        Pokemon ultimo = lerUltimoPokemon("data\\pokemon_bytes.bin");
-        System.out.println("Último Pokémon: " + ultimo.getName());
+        Pokemon ultimo ;
+        // System.out.println("Último Pokémon: " + ultimo.getName());
+        // lerTodasEntradas("data/pokemon_bytes.bin");
+        System.out.println("🚀 Iniciando o programa...");
+        ultimo = lerUltimoPokemon("data\\pokemon_bytes.bin");
+        System.out.println(ultimo.getName());
         CREATE();
         ultimo = lerUltimoPokemon("data\\pokemon_bytes.bin");
-        System.out.println("Último Pokémon: " + ultimo.getName());
-        READ(scanner);
-        UPDATE(scanner);
-        lerTodasEntradas("data\\pokemon_bytes.bin");
+        System.out.println(ultimo.getName());
+        // lerTodasEntradas("data/pokemon_bytes.bin");
+        // ultimo = lerUltimoPokemon("data\\pokemon_bytes.bin");
+        // System.out.println("Último Pokémon: " + ultimo.getName());
+        // READ(scanner);
+        verificarBuracos();
+        // UPDATE(scanner);
+        // lerTodasEntradas("data/pokemon_bytes.bin");
+        // ordenarArquivoFinal();
+        // lerPokemonsArquivoTemporario("arquivofinal.bin");
         scanner.close();
+
     }
+
 }
