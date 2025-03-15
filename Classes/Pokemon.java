@@ -1,3 +1,4 @@
+package Classes;
 public class Pokemon {
         private int id;
         private int numberPokedex;

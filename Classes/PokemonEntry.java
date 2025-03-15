@@ -1,3 +1,4 @@
+package Classes;
 public class PokemonEntry {
     Pokemon pokemon;
     int origemArquivo;
