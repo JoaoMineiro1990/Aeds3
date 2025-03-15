@@ -9,6 +9,12 @@ import java.util.Random;
 import java.util.Scanner;
 
 public class PokemonCRUD {
+    /**
+     * Metodo que abre o arquivo csv pega um pokemon de forma randomica e insere no arquivo binario
+     * @param scanner leitura do teclado
+     * @param caminhoArquivoCSV caminho do arquivo csv
+     * @param caminhoArquivoBinario caminho do arquivo binario
+     */
      public static void CREATE(Scanner scanner, String caminhoArquivoCSV, String caminhoArquivoBinario) {
     
         try (BufferedReader br = new BufferedReader(new FileReader(caminhoArquivoCSV));
@@ -68,6 +74,12 @@ public class PokemonCRUD {
             e.printStackTrace();
         }
     }
+
+    /**
+     * Metodo que pergunta ao usuario se ele deseja ler um pokemon e chama outros metodos para as operacoes
+     * @param scanner leitura do teclado
+     * @param caminhoArquivoBinario caminho do arquivo binario
+     */
     public static void READ(Scanner scanner,String caminhoArquivoBinario) {
         int opcao;
 
@@ -102,6 +114,11 @@ public class PokemonCRUD {
         } while (opcao != 2);
     }
 
+    /**
+     * Metodo que pergunta ao usuario se ele deseja atualizar um pokemon e chama outros metodos para as operacoes
+     * @param scanner leitura do teclado
+     * @param caminhoArquivoBinario caminho do arquivo binario
+     */
     public static void UPDATE(Scanner scanner,String caminhoArquivoBinario) {
         int opcao;
 
@@ -131,6 +148,12 @@ public class PokemonCRUD {
         } while (opcao != 3);
 
     }
+
+    /**
+     * Metodo que pergunta ao usuario se ele deseja excluir um pokemon
+     * @param sc leitura do teclado
+     * @param caminhoDoArquivoBinario caminho do arquivo binario
+     */
     public static void DELETE(Scanner sc, String caminhoDoArquivoBinario) {
         boolean continuar = true;
     

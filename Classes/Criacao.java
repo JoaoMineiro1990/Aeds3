@@ -10,6 +10,12 @@ import java.util.List;
 
 public class Criacao {
 
+    /**
+     * Metodo que recebe o caminho do arquivo e o caminho do arquivo binario e cria
+     * o arquivo binario a partir do arquivo de csv
+     * @param caminhoArquivo arquvio csv a ser lido
+     * @param caminhoArquivoBinario arquivo binario a ser criado
+     */
     public static void CriarArquivo(String caminhoArquivo, String caminhoArquivoBinario) {
 
         int ultimoId = 1;
@@ -33,6 +39,12 @@ public class Criacao {
 
     }
 
+    /**
+     * Metodo que recebe uma lista de strings que contem os atributos dos pokemons
+     * os separa e depois cria o objeto pokemon
+     * @param Separado lista de strings com os atributos do pokemon
+     * @return objeto pokemon criado
+     */
     public static Pokemon criarPokemonDoSplit(List<String> Separado) {
         return new Pokemon(
                 Integer.parseInt(Separado.get(0)),
@@ -58,6 +70,13 @@ public class Criacao {
                 Auxiliares.truncarDouble(Double.parseDouble(Separado.get(20)), 2));
     }
 
+    /**
+     * Metodo que recebe um raf ja aberto no arquivo binario, pula o cabecalho e
+     * cria um objeto pokemon com os dados do arquivo
+     * @param raf
+     * @return
+     * @throws IOException
+     */
     public static Pokemon CriarPokemonDoArquivo(RandomAccessFile raf) throws IOException {
         raf.readInt();
         Pokemon p = new Pokemon(0, "", "", "", "", 0, 0, 0, 0, 0, 0, 0, 0.0, 0.0, "", 0, 0.0, 0.0, 0.0, 0.0, 0.0);

@@ -8,6 +8,13 @@ import Classes.PokemonCRUD;
 public class Entrega1 {
 
   
+    /**
+     * metodo que chama varias funcoes para mostrar o funcionamento da estrutura de dados criada em arquivo e dos algoritimos neles pedidos
+     * @param scanner leitura do teclado
+     * @param caminhoArquivo caminho do arquivo csv
+     * @param caminhoArquivoBinario caminho do arquivo binario antes da ordenacao
+     * @param caminhoArquivoBinarioFinal caminho do arquivo binario final apos a ordenacao
+     */
     public static void entregaFinal(Scanner scanner, String caminhoArquivo, String caminhoArquivoBinario, String caminhoArquivoBinarioFinal) { 
         System.out.println("🚀 Iniciando o programa...");
         
@@ -57,8 +64,8 @@ public class Entrega1 {
     }
     
         public static void main(String[] args) {
-            Scanner scanner = new Scanner(System.in);
-            String caminhoArquivo = "data/dados_modificados.csv";
+        Scanner scanner = new Scanner(System.in);
+        String caminhoArquivo = "data/dados_modificados.csv";
         String caminhoArquivoBinario = "data/pokemon_bytes.bin";
         String caminhoArquivoBinarioFinal = "arquivofinal.bin";
             entregaFinal(scanner, caminhoArquivo, caminhoArquivoBinario, caminhoArquivoBinarioFinal);

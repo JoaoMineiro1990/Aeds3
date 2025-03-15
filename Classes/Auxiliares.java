@@ -1,4 +1,5 @@
 package Classes;
+
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.math.BigDecimal;
@@ -15,8 +16,14 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class Auxiliares {
-    
-    public static void atualizarPokemon(Scanner scanner,String caminhoArquivoBinario) {
+    /**
+     * Atualiza um Pokémon no arquivo binário, fazendo sua exclusao depois
+     * adicionando novamente
+     * 
+     * @param scanner               Scanner para entrada do usuário
+     * @param caminhoArquivoBinario Caminho do arquivo binário
+     */
+    public static void atualizarPokemon(Scanner scanner, String caminhoArquivoBinario) {
         System.out.print("Digite o ID do Pokémon que deseja atualizar: ");
         int id = scanner.nextInt();
         scanner.nextLine();
@@ -55,25 +62,27 @@ public class Auxiliares {
                 System.out.println("Opção inválida.");
                 return;
         }
-        
+        /*
+         * depois de atualizar o pokemon esse codigo abaixo escreve ele no arquivo
+         */
         try (RandomAccessFile raf = new RandomAccessFile(caminhoArquivoBinario, "rw")) {
             int idPokemon = PegarIdUltimo(caminhoArquivoBinario);
             p.setId(idPokemon);
             AtualizarId(idPokemon);
             raf.seek(raf.length());
-            Escrita.escreverEntrada(raf, p,caminhoArquivoBinario);
-        
+            Escrita.escreverEntrada(raf, p, caminhoArquivoBinario);
+
             System.out.println("Atualização concluída!\n");
         } catch (IOException e) {
             e.printStackTrace();
         }
-        
+
     }
-    
+
     public static void debugArquivo(String caminhoArquivoBinario) {
         try (RandomAccessFile raf = new RandomAccessFile(caminhoArquivoBinario, "r")) {
             System.out.print("Estado inicial do arquivo: ");
-            while (raf.getFilePointer() < Math.min(raf.length(), 20)) { // Lendo apenas os primeiros bytes
+            while (raf.getFilePointer() < Math.min(raf.length(), 20)) {
                 System.out.print(raf.readInt() + " ");
             }
             System.out.println();
@@ -81,55 +90,69 @@ public class Auxiliares {
             e.printStackTrace();
         }
     }
-    
-  public static void atualizarHabilidades(Pokemon p, Scanner scanner) {
-    System.out.println("\nHabilidades atuais: " + p.getAbilities());
-    System.out.println("1 - Adicionar habilidade");
-    System.out.println("2 - Remover habilidade");
-    System.out.print("Escolha uma opção: ");
-    int escolha = scanner.nextInt();
-    scanner.nextLine(); 
-    List<String> habilidades = new ArrayList<>();
-    if (!p.getAbilities().isEmpty()) {
-        habilidades = new ArrayList<>(List.of(p.getAbilities().replace("'", "").split(", ")));
-    }
 
-    if (escolha == 1) {
-        System.out.print("Digite a nova habilidade: ");
-        String novaHabilidade = scanner.nextLine().trim();
-        habilidades.add(novaHabilidade);
-    } else if (escolha == 2) {
-        if (habilidades.isEmpty()) {
-            System.out.println("Este Pokémon não tem habilidades para remover.");
-            return;
+    /**
+     * Atualiza as habilidades de um Pokémon, lendo todas abrindo uma lista de
+     * habilidades e adicionando ou removendo habilidades
+     * setando a habilidade no objeto pokemon e depois a funcao de atualizar ira
+     * escrever
+     * 
+     * @param p       Pokemon a ser atualizado
+     * @param scanner Scanner para entrada do usuário
+     */
+    public static void atualizarHabilidades(Pokemon p, Scanner scanner) {
+        System.out.println("\nHabilidades atuais: " + p.getAbilities());
+        System.out.println("1 - Adicionar habilidade");
+        System.out.println("2 - Remover habilidade");
+        System.out.print("Escolha uma opção: ");
+        int escolha = scanner.nextInt();
+        scanner.nextLine();
+        List<String> habilidades = new ArrayList<>();
+        if (!p.getAbilities().isEmpty()) {
+            habilidades = new ArrayList<>(List.of(p.getAbilities().replace("'", "").split(", ")));
         }
 
-        System.out.println("Selecione a habilidade para remover:");
-        for (int i = 0; i < habilidades.size(); i++) {
-            System.out.println((i + 1) + " - '" + habilidades.get(i) + "'"); 
-        }
-        System.out.print("Digite o número da habilidade: ");
-        int remover = scanner.nextInt();
-        scanner.nextLine(); 
+        if (escolha == 1) {
+            System.out.print("Digite a nova habilidade: ");
+            String novaHabilidade = scanner.nextLine().trim();
+            habilidades.add(novaHabilidade);
+        } else if (escolha == 2) {
+            if (habilidades.isEmpty()) {
+                System.out.println("Este Pokémon não tem habilidades para remover.");
+                return;
+            }
 
-        if (remover >= 1 && remover <= habilidades.size()) {
-            habilidades.remove(remover - 1);
+            System.out.println("Selecione a habilidade para remover:");
+            for (int i = 0; i < habilidades.size(); i++) {
+                System.out.println((i + 1) + " - '" + habilidades.get(i) + "'");
+            }
+            System.out.print("Digite o número da habilidade: ");
+            int remover = scanner.nextInt();
+            scanner.nextLine();
+
+            if (remover >= 1 && remover <= habilidades.size()) {
+                habilidades.remove(remover - 1);
+            } else {
+                System.out.println("Opção inválida.");
+                return;
+            }
         } else {
             System.out.println("Opção inválida.");
             return;
         }
-    } else {
-        System.out.println("Opção inválida.");
-        return;
+
+        p.setAbilities(habilidades.stream()
+                .map(h -> "'" + h + "'")
+                .collect(Collectors.joining(", ")));
+
+        System.out.println("Habilidades atualizadas: " + p.getAbilities());
     }
 
-    p.setAbilities(habilidades.stream()
-            .map(h -> "'" + h + "'") 
-            .collect(Collectors.joining(", ")));
-
-    System.out.println("Habilidades atualizadas: " + p.getAbilities());
-}
-
+    /**
+     * Imprime um Pokémon no console
+     * 
+     * @param p
+     */
     public static void imprimirPokemon(Pokemon p) {
         System.out.print("ID: " + p.getId() + " ");
         System.out.print("Number Pokedex: " + p.getNumberPokedex() + " ");
@@ -155,6 +178,12 @@ public class Auxiliares {
         System.out.println("BMI: " + p.getBmi() + " ");
     }
 
+    /**
+     * Abre o arquivo e pega o primeiro int que eh o ultimo id do pokemon
+     * 
+     * @param caminhoArquivoBinario caminho do arquivo binario
+     * @return retorna o ultimo id do pokemon
+     */
     public static int PegarIdUltimo(String caminhoArquivoBinario) {
         try (RandomAccessFile raf = new RandomAccessFile(caminhoArquivoBinario, "r")) {
             return raf.readInt() + 1;
@@ -164,10 +193,21 @@ public class Auxiliares {
         }
     }
 
+    /**
+     * Seta o id do pokemon pegando do arquivo para saber qual eh o ultimo
+     * 
+     * @param p  pokemon
+     * @param id id do final do arquivo para ser setado
+     */
     public static void setIdArquivo(Pokemon p, int id) {
         p.setId(id);
     }
 
+    /**
+     * Atualiza o id do arquivo binario
+     * 
+     * @param id id a ser atualizado
+     */
     public static void AtualizarId(int id) {
         try (RandomAccessFile raf = new RandomAccessFile("data/pokemon_bytes.bin", "rw")) {
             raf.seek(0);
@@ -177,11 +217,24 @@ public class Auxiliares {
         }
     }
 
+    /**
+     * Converte um epoch para uma data no formato dd/MM/yyyy
+     * 
+     * @param epoch Epoch a ser convertido
+     * @return Data no formato dd/MM/yyyy
+     */
     public static String converterEpochParaData(long epoch) {
         LocalDate data = Instant.ofEpochSecond(epoch).atZone(ZoneId.of("UTC")).toLocalDate();
         return data.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
     }
 
+    /**
+     * recebe uma linha de um pokemon e adiciona um caracter aonde esta vaziopara
+     * futuras manipulacoes
+     * 
+     * @param linha linha que contem a informacao dos pokemons
+     * @return string que contem a entrada modificada
+     */
     static String posicoesVazias(String linha) {
         while (linha.contains(",,")) {
             linha = linha.replace(",,", ",X,");
@@ -189,6 +242,13 @@ public class Auxiliares {
         return linha;
     }
 
+    /**
+     * Recebe uma linha de um pokemon e separa ela em uma lista de strings a partir
+     * de uma expressao regular
+     * 
+     * @param linha linha que contem a informacao dos pokemons
+     * @return lista de strings que contem a informacao separada
+     */
     public static List<String> SplitInteligente(String linha) {
         List<String> Separado = new ArrayList<>();
 
@@ -200,6 +260,14 @@ public class Auxiliares {
         return Separado;
     }
 
+    /**
+     * metodo que recebe um double e um inteiro e trunca o double para o numero de
+     * casas decimais desejado
+     * 
+     * @param valor         valor a ser truncado
+     * @param casasDecimais numero de casas decimais
+     * @return double truncado
+     */
     public static double truncarDouble(double valor, int casasDecimais) {
         BigDecimal bd = new BigDecimal(valor);
         bd = bd.setScale(casasDecimais, RoundingMode.FLOOR);
