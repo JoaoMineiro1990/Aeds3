@@ -1,5 +1,4 @@
 import java.util.Scanner;
-
 import Classes.Criacao;
 import Classes.Leitura;
 import Classes.Ordenacao;
@@ -14,12 +13,16 @@ public class Entrega1 {
         
         // Criando arquivo inicial
         System.out.println("📁 Criando o arquivo...");
-        Criacao.CriarArquivo(caminhoArquivo, caminhoArquivoBinario);
     
+        Criacao.CriarArquivo(caminhoArquivo, caminhoArquivoBinario);
+        
         // Lendo todas as entradas iniciais
         System.out.println("📖 Lendo todas as entradas iniciais...");
         Leitura.lerTodasEntradas(caminhoArquivoBinario);
-    
+        
+        // Deleta uma entrada
+        PokemonCRUD.DELETE(scanner, caminhoArquivoBinario);
+
         // Lendo o último Pokémon antes das alterações
         System.out.println("🔍 Lendo o último Pokémon...");
         Pokemon ultimo =  Leitura.lerUltimoPokemon(caminhoArquivoBinario);

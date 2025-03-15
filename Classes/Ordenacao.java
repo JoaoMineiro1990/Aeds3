@@ -131,22 +131,32 @@ public class Ordenacao {
             e.printStackTrace();
         }
     }
+
     /**
      * Distribui os Pokémon do arquivo binário para os arquivos temporários.
-     * O primeiro binario 
-     * @param caminhoArquivoBinario
-     * @param numArquivosTemp
+     * O primeiro binario eh o arquivo criado pela funcao CriarArquivo
+     * na segunda repeticao ele ja usa o arquivo final criado pela intercalacao
+     * 
+     * @param caminhoArquivoBinario Caminho do arquivo binário
+     * @param numArquivosTemp       Número de arquivos temporários
      */
     private static void distribuirParaArquivosTemporarios(String caminhoArquivoBinario, int numArquivosTemp) {
+
         try (RandomAccessFile raf = new RandomAccessFile(caminhoArquivoBinario, "r")) {
             raf.seek(0);
             raf.readInt();
-
+            /*
+             * isso aqui eh so para conseguir circular pelos arquivos temporarios
+             * tem que colocar o nome deles em array
+             */
             List<DataOutputStream> arquivosTemporarios = new ArrayList<>();
             List<String> nomesArquivosTemp = new ArrayList<>();
-            int[] contadores = new int[numArquivosTemp]; // Contadores para cada arquivo
-            int totalLidos = 0; // Contador total de Pokémon lidos
+            int[] contadores = new int[numArquivosTemp];
+            int totalLidos = 0;
 
+            /*
+             * Abrindo os arquivos temporarios e adicionando eles em uma lista
+             */
             for (int i = 1; i <= numArquivosTemp; i++) {
                 String nomeArquivo = "temp" + i + ".bin";
                 arquivosTemporarios.add(new DataOutputStream(new FileOutputStream(nomeArquivo)));
@@ -154,11 +164,15 @@ public class Ordenacao {
             }
 
             int arquivoAtual = 0;
-            int heapSize = 7; // Número máximo de Pokémon no heap
+            int heapSize = 7;
+            /*
+             * Duas Heaps para distribuicao a primeira vai tentar fazer a maior Run possivel
+             * e a segunda vai guardar os Pokemons que nao foram possiveis de serem
+             * inseridos
+             */
             PriorityQueue<Pokemon> minHeap = new PriorityQueue<>(Comparator.comparing(Pokemon::getName));
             PriorityQueue<Pokemon> nextRunHeap = new PriorityQueue<>(Comparator.comparing(Pokemon::getName));
 
-            // 🔹 Preenchemos o heap inicial com até 7 Pokémon
             while (raf.getFilePointer() < raf.length() && minHeap.size() < heapSize) {
                 Pokemon p = Leitura.lerPokemon(raf);
                 if (p != null) {
@@ -166,19 +180,18 @@ public class Ordenacao {
                     totalLidos++;
                 }
             }
-
+            
             Pokemon ultimoSalvo = null;
-
+            /*
+             * Enquanto a heap nao estiver vazia ele vai adicionando os pokemons nos
+             * arquivos temporarios de formar circular
+             */
             while (!minHeap.isEmpty() || !nextRunHeap.isEmpty()) {
                 List<Pokemon> bufferPokemons = new ArrayList<>();
-
-                // 🔹 Processamos todos os Pokémon do heap principal antes de trocar de run
                 while (!minHeap.isEmpty()) {
                     Pokemon menorPokemon = minHeap.poll();
                     bufferPokemons.add(menorPokemon);
                     ultimoSalvo = menorPokemon;
-
-                    // 🔹 Pegamos o próximo Pokémon do arquivo e decidimos se continua na mesma run
                     if (raf.getFilePointer() < raf.length()) {
                         Pokemon proximoPokemon = Leitura.lerPokemon(raf);
                         if (proximoPokemon != null) {
@@ -192,7 +205,6 @@ public class Ordenacao {
                     }
                 }
 
-                // 🔹 Salvamos os Pokémon processados no arquivo temporário atual
                 if (!bufferPokemons.isEmpty()) {
                     System.out.println("📂 Salvando " + bufferPokemons.size() + " Pokémon no arquivo: "
                             + nomesArquivosTemp.get(arquivoAtual));
@@ -202,13 +214,11 @@ public class Ordenacao {
                     arquivoAtual = (arquivoAtual + 1) % numArquivosTemp;
                 }
 
-                // 🔄 Se a heap principal estiver vazia, iniciamos uma nova run com os Pokémon
-                // do nextRunHeap
                 if (!nextRunHeap.isEmpty()) {
                     System.out.println("🔄 Iniciando nova run com Pokémon remanescentes...");
                     minHeap.addAll(nextRunHeap);
                     nextRunHeap.clear();
-                    ultimoSalvo = null; // 🔄 Resetamos para permitir novas comparações
+                    ultimoSalvo = null;
                 }
             }
 
@@ -217,8 +227,8 @@ public class Ordenacao {
             }
 
             // Exibir o número total de Pokémon lidos e salvos em cada arquivo temporário
-            System.out.println("\n✅ Distribuição concluída com Replacement Selection!");
-            System.out.println("📊 Total de Pokémon lidos: " + totalLidos);
+            System.out.println("\n Distribuição concluída com Replacement Selection!");
+            System.out.println(" Total de Pokémon lidos: " + totalLidos);
             for (int i = 0; i < numArquivosTemp; i++) {
                 System.out.println("📂 " + nomesArquivosTemp.get(i) + " contém " + contadores[i] + " Pokémon.");
             }
@@ -227,7 +237,14 @@ public class Ordenacao {
             e.printStackTrace();
         }
     }
-
+    /**
+     * Ordena o arquivo final com Replacement Selection Utilizando apenas um arquivo
+     * final para a ordenacao dos Pokemons.
+     * novamente esse codigo foi criado com ajuda de ia entao os Sysout eu vou deixar porque fica bonito
+     * @param numArquivosTemp numero de arquivos temporarios
+     * @param caminhoArquivoBinario caminho do arquivo binario
+     * @param caminhoArquivoBinarioFinal caminho do arquivo final
+     */
     private static void ordenarArquivoFinal(int numArquivosTemp, String caminhoArquivoBinario,
             String caminhoArquivoBinarioFinal) {
         List<String> arquivosTemporarios = new ArrayList<>();
@@ -238,7 +255,6 @@ public class Ordenacao {
         criarArquivosTemporarios(numArquivosTemp);
         String caminhoArquivoAtual = caminhoArquivoBinario;
         int iteracao = 1;
-
         while (true) {
             System.out.println("\n🔄 Iteração " + iteracao + ": Distribuindo Pokémon...");
             distribuirParaArquivosTemporarios(caminhoArquivoAtual, numArquivosTemp);
@@ -254,7 +270,7 @@ public class Ordenacao {
             caminhoArquivoAtual = caminhoArquivoBinarioFinal;
             iteracao++;
         }
-        System.out.println("\n🗑️ Removendo arquivos temporários...");
+        System.out.println("\n Removendo arquivos temporários...");
         for (String arquivo : arquivosTemporarios) {
             File tempFile = new File(arquivo);
             if (tempFile.exists() && tempFile.delete()) {
@@ -266,18 +282,21 @@ public class Ordenacao {
 
         File pokemonBin = new File(caminhoArquivoBinario);
         if (pokemonBin.exists() && pokemonBin.delete()) {
-            System.out.println("🗑️ Arquivo deletado: data/pokemon_bytes.bin");
+            System.out.println(" Arquivo deletado: data/pokemon_bytes.bin");
         } else {
-            System.out.println("⚠️ Não foi possível deletar: data/pokemon_bytes.bin");
+            System.out.println(" Não foi possível deletar: data/pokemon_bytes.bin");
         }
     }
-
+    /**
+     * Le os Pokemons do arquivo temporario ou arquivo final
+     * @param caminhoArquivo caminho do arquivo binario
+     */
     public static void lerPokemonsArquivoTemporario(String caminhoArquivo) {
         try (RandomAccessFile raf = new RandomAccessFile(caminhoArquivo, "r")) {
 
             raf.seek(0);
             raf.readInt();
-            long tamanhoArquivo = raf.length(); // 📏 Tamanho total do arquivo
+            long tamanhoArquivo = raf.length();
 
             while (raf.getFilePointer() < tamanhoArquivo) {
                 if (raf.getFilePointer() >= tamanhoArquivo - 4) {
@@ -310,13 +329,15 @@ public class Ordenacao {
             e.printStackTrace();
         }
     }
-
+    /**
+     * Reconstrói um Pokémon a partir de um array de bytes.
+     * @param dados Array de bytes que contem o pokemon estruturado
+     * @return    Pokemon reconstruido
+     */
     public static Pokemon reconstruirPokemonDeBytes(byte[] dados) {
         try (ByteArrayInputStream bais = new ByteArrayInputStream(dados);
                 DataInputStream dis = new DataInputStream(bais)) {
-
             Pokemon p = new Pokemon(0, "", "", "", "", 0, 0, 0, 0, 0, 0, 0, 0.0, 0.0, "", 0, 0.0, 0.0, 0.0, 0.0, 0.0);
-
             p.setId(dis.readInt());
             p.setNumberPokedex(dis.readInt());
             p.setName(dis.readUTF());
@@ -331,7 +352,6 @@ public class Ordenacao {
                     habilidadesStr.append(", ");
             }
             p.setAbilities(habilidadesStr.toString());
-
             p.setHp(dis.readInt());
             p.setAtt(dis.readInt());
             p.setDef(dis.readInt());
@@ -343,22 +363,25 @@ public class Ordenacao {
             p.setStandardDeviation(dis.readDouble());
             long epochTime = dis.readLong();
             p.setGeneration(Auxiliares.converterEpochParaData(epochTime));
-
             p.setCatchRate(dis.readInt());
             p.setLegendary(dis.readDouble());
             p.setMegaEvolution(dis.readDouble());
             p.setHeight(dis.readDouble());
             p.setWeight(dis.readDouble());
             p.setBmi(dis.readDouble());
-
             return p;
         } catch (IOException e) {
-            System.out.println("❌ ERRO ao reconstruir Pokémon dos bytes.");
+            System.out.println(" ERRO ao reconstruir Pokémon dos bytes.");
             e.printStackTrace();
             return null;
         }
     }
-
+    /**
+     * Salva os Pokemons ordenados no arquivo temporario
+     * @param pokemons Lista de Pokemons ordenados
+     * @param dos     DataOutputStream para escrever os Pokemons
+     * @param caminhoArquivoTemp Caminho do arquivo temporario que vai ser salvo
+     */
     public static void salvarPokemonsOrdenados(List<Pokemon> pokemons, DataOutputStream dos,
             String caminhoArquivoTemp) {
         try {
@@ -366,11 +389,18 @@ public class Ordenacao {
                 Escrita.escreverEntrada(dos, p, caminhoArquivoTemp);
             }
         } catch (IOException e) {
-            System.out.println("❌ ERRO ao salvar Pokémon no arquivo temporário.");
+            System.out.println(" ERRO ao salvar Pokémon no arquivo temporário.");
             e.printStackTrace();
         }
     }
 
+    /**
+     * Chamada para iniciar a ordenação dos Pokémon.
+     * onde pergunta com quantos arquivo temporarios vai ser feita
+     * @param scanner Scanner para entrada de dados
+     * @param caminhoArquivoBinario Caminho do arquivo binário
+     * @param caminhoArquivoBinarioFinal Caminho do arquivo binário final
+     */
     public static void iniciarOrdenacao(Scanner scanner, String caminhoArquivoBinario,
             String caminhoArquivoBinarioFinal) {
         int numTemporarios;

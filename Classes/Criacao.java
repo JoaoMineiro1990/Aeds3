@@ -1,4 +1,5 @@
 package Classes;
+
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.FileOutputStream;
@@ -8,7 +9,8 @@ import java.io.RandomAccessFile;
 import java.util.List;
 
 public class Criacao {
-        public static void CriarArquivo(String caminhoArquivo, String caminhoArquivoBinario) {
+
+    public static void CriarArquivo(String caminhoArquivo, String caminhoArquivoBinario) {
 
         int ultimoId = 1;
         try (BufferedReader br = new BufferedReader(new FileReader(caminhoArquivo));

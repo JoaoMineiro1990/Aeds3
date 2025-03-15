@@ -17,40 +17,30 @@ public class Leitura {
             while (raf.getFilePointer() < raf.length()) {
                 long posicaoAntes = raf.getFilePointer();
                 
-                // Se estamos a menos de 8 bytes do final do arquivo, paramos a leitura para evitar erro
                 if (raf.length() - posicaoAntes < 8) {
-                    System.out.println("✅ Arquivo terminou corretamente. Nenhuma entrada inválida no final.");
+                    System.out.println(" Arquivo terminou corretamente. Nenhuma entrada inválida no final.");
                     break;
                 }
-    
-                int cova = raf.readInt();  // Lê a cova
-                int tamanhoEntrada = raf.readInt();  // Lê o tamanho do Pokémon
-    
-                // 🔹 Proteção contra leitura inválida (caso tamanho seja inconsistente)
+                int cova = raf.readInt();  
+                int tamanhoEntrada = raf.readInt(); 
                 if (tamanhoEntrada <= 0 || (posicaoAntes + tamanhoEntrada + 4) > raf.length()) {
-                    System.out.println("❌ ERRO: Entrada inválida na posição " + posicaoAntes + ". Pulando...");
+                    System.out.println(" ERRO: Entrada inválida na posição " + posicaoAntes + ". Pulando...");
                     break;
                 }
-    
                 if (cova == 0) {
-                    // É um buraco, então registramos
                     buracos.add("Buraco detectado na posição " + posicaoAntes + " com tamanho " + tamanhoEntrada + " bytes.");
                 }
-    
-                // Pula para a próxima entrada, garantindo leitura sequencial
                 raf.seek(posicaoAntes + tamanhoEntrada + 4);
             }
     
         } catch (IOException e) {
-            System.out.println("❌ ERRO ao abrir o arquivo.");
+            System.out.println(" ERRO ao abrir o arquivo.");
             e.printStackTrace();
         }
-    
-        // Exibe os buracos encontrados
         if (buracos.isEmpty()) {
-            System.out.println("✅ Nenhum buraco encontrado no arquivo.");
+            System.out.println(" Nenhum buraco encontrado no arquivo.");
         } else {
-            System.out.println("\n📌 Lista de buracos encontrados:");
+            System.out.println("\n Lista de buracos encontrados:");
             for (String buraco : buracos) {
                 System.out.println(buraco);
             }
@@ -172,34 +162,30 @@ public class Leitura {
    public static Pokemon encontrarEExcluirPokemon(String caminhoArquivoBinario, int numeroEscolhido) {
         try (RandomAccessFile raf = new RandomAccessFile(caminhoArquivoBinario, "rw")) {
             raf.seek(0);
-            raf.readInt(); // Pula o ID inicial do arquivo
+            raf.readInt();
             
             int contador = 0;
     
             while (raf.getFilePointer() < raf.length()) {
                 long posicaoOriginal = raf.getFilePointer();
-                int cova = raf.readInt(); // Lê a cova (0 = buraco, 1 = Pokémon válido)
-                int tamanhoEntrada = raf.readInt(); // Lê o tamanho da entrada
+                int cova = raf.readInt();
+                int tamanhoEntrada = raf.readInt(); 
                 
-                // Proteção contra erros de leitura no final do arquivo
                 if (tamanhoEntrada <= 0 || (posicaoOriginal + tamanhoEntrada + 8) > raf.length()) {
                     System.out.println("❌ ERRO: Entrada inválida na posição " + posicaoOriginal + ". Pulando...");
                     break;
                 }
-    
+
                 if (cova == 1) { 
                     contador++;
                     if (contador == numeroEscolhido) {
                         System.out.println("📍 Pokémon encontrado na posição: " + posicaoOriginal);
-    
-                        // Criando o Pokémon diretamente aqui antes de removê-lo
                         Pokemon p = new Pokemon(0, "", "", "", "", 0, 0, 0, 0, 0, 0, 0, 0.0, 0.0, "", 0, 0.0, 0.0, 0.0, 0.0, 0.0);
                         p.setId(raf.readInt());
                         p.setNumberPokedex(raf.readInt());
                         p.setName(raf.readUTF());
                         p.setType1(raf.readUTF());
                         p.setType2(raf.readUTF());
-    
                         int habilidades = raf.readInt();
                         StringBuilder habilidadesStr = new StringBuilder();
                         for (int i = 0; i < habilidades; i++) {
@@ -208,7 +194,6 @@ public class Leitura {
                                 habilidadesStr.append(", ");
                         }
                         p.setAbilities(habilidadesStr.toString());
-    
                         p.setHp(raf.readInt());
                         p.setAtt(raf.readInt());
                         p.setDef(raf.readInt());
@@ -225,18 +210,13 @@ public class Leitura {
                         p.setHeight(raf.readDouble());
                         p.setWeight(raf.readDouble());
                         p.setBmi(raf.readDouble());
-    
-                        // Agora voltamos à posição inicial para marcar como buraco (cova = 0)
                         raf.seek(posicaoOriginal);
                         int valor = 0;
                         raf.writeInt(valor);
-    
                         System.out.println("🚨 Pokémon removido! ID: " + p.getId() + " - " + p.getName());
                         return p;
                     }
                 }
-    
-                // Pular para a próxima entrada
                 raf.seek(posicaoOriginal + tamanhoEntrada + 4);
             }
         } catch (IOException e) {

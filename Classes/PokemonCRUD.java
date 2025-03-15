@@ -17,7 +17,7 @@ public class PokemonCRUD {
             String linhaAtual;
             List<String> todasAsLinhas = new ArrayList<>();
     
-            br.readLine(); // Ignora o cabeçalho
+            br.readLine();
             while ((linhaAtual = br.readLine()) != null) {
                 todasAsLinhas.add(linhaAtual);
             }
@@ -29,30 +29,25 @@ public class PokemonCRUD {
     
             boolean continuar = true;
             while (continuar) {
-                // Seleciona uma linha aleatória do CSV
                 String linhaAleatoria = todasAsLinhas.get(new Random().nextInt(todasAsLinhas.size()));
                 linhaAleatoria = Auxiliares.posicoesVazias(linhaAleatoria);
                 List<String> Separado = Auxiliares.SplitInteligente(linhaAleatoria);
                 Pokemon p = Criacao.criarPokemonDoSplit(Separado);
     
-                // Pega o último ID de forma segura
                 int ultimoId = Auxiliares.PegarIdUltimo(caminhoArquivoBinario);
                 Auxiliares.setIdArquivo(p, ultimoId);
     
-                // Escreve no final do arquivo binário
                 raf.seek(raf.length());
                 Escrita.escreverEntrada(raf, p, caminhoArquivoBinario);
                 Auxiliares.AtualizarId(ultimoId);
     
                 System.out.println("✅ Novo Pokémon adicionado com sucesso!");
-    
-                // Pergunta ao usuário se deseja inserir outro Pokémon
                 System.out.println("\nDeseja inserir outro Pokémon?");
                 System.out.println("1 - Sim");
                 System.out.println("2 - Não");
                 System.out.print("Escolha: ");
                 int escolha = scanner.nextInt();
-                scanner.nextLine(); // Consumir a quebra de linha
+                scanner.nextLine(); 
     
                 switch (escolha) {
                     case 1:
@@ -136,4 +131,40 @@ public class PokemonCRUD {
         } while (opcao != 3);
 
     }
+    public static void DELETE(Scanner sc, String caminhoDoArquivoBinario) {
+        boolean continuar = true;
+    
+        while (continuar) {
+            System.out.println("Escolha uma opção:");
+            System.out.println("1 - Excluir um Pokémon");
+            System.out.println("2 - Sair");
+    
+            int escolha = sc.nextInt();
+            sc.nextLine(); 
+    
+            switch (escolha) {
+                case 1:
+                    System.out.println("Digite o ID do Pokémon que deseja excluir:");
+                    int id = sc.nextInt();
+                    sc.nextLine();
+    
+                    Pokemon p = Leitura.encontrarEExcluirPokemon(caminhoDoArquivoBinario, id);
+                    if (p == null) {
+                        System.out.println("Erro: Pokémon não encontrado.");
+                    } else {
+                        System.out.println("Pokémon excluído com sucesso!");
+                    }
+                    break;
+    
+                case 2:
+                    System.out.println("Saindo do modo de exclusão...");
+                    continuar = false;
+                    break;
+    
+                default:
+                    System.out.println("Opção inválida. Tente novamente.");
+            }
+        }
+    }
+    
 }

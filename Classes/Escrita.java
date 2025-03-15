@@ -46,16 +46,13 @@ public class Escrita {
     tempStream.writeDouble(p.getWeight());
     tempStream.writeDouble(p.getBmi());
 
-    // Fecha o stream temporário e pega o tamanho real da entrada
     tempStream.flush();
     byte[] entradaBytes = byteArrayStream.toByteArray();
     int tamanhoEntrada = entradaBytes.length;
-
-    // Escreve o tamanho da entrada antes de escrever os dados
     raf.writeInt(tamanhoEntrada);
-    raf.write(entradaBytes); // Escreve os bytes reais da entrada
+    raf.write(entradaBytes); 
 
-    System.out.println("✅ Pokémon escrito na posição " + posicao + " (Nome: " + p.getName() + ")");
+    System.out.println(" Pokémon escrito na posição " + posicao + " (Nome: " + p.getName() + ")");
 }
 
     public static void escreverPokemon(DataOutputStream dos, Pokemon p, String caminhoArquivo) throws IOException {
