@@ -286,6 +286,7 @@ public class Ordenacao {
         } else {
             System.out.println(" Não foi possível deletar: data/pokemon_bytes.bin");
         }
+
     }
     /**
      * Le os Pokemons do arquivo temporario ou arquivo final
@@ -415,5 +416,7 @@ public class Ordenacao {
         }
 
         ordenarArquivoFinal(numTemporarios, caminhoArquivoBinario, caminhoArquivoBinarioFinal);
+        Leitura.lerTodasEntradas(caminhoArquivoBinarioFinal);
+
     }
 }

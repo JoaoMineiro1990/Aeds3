@@ -6,7 +6,6 @@ import Classes.Ordenacao;
 import Classes.PokemonCRUD;
 
 public class Entrega1 {
-    
 
     public static void arquivoInterface(Scanner scanner, String caminhoArquivo, String caminhoArquivoBinario) {
         int choice = 0;
@@ -232,7 +231,7 @@ public class Entrega1 {
         }
     }
 
-    public static void organizacaoInterface(Scanner scanner, String caminhoArquivoBinario) {
+    public static void organizacaoInterface(Scanner scanner, String caminhoArquivoBinario,String caminhoArquivoBinarioFinal) {
         int choice = 0;
         while (choice != 3) {
             System.out.println("==================================");
@@ -255,8 +254,8 @@ public class Entrega1 {
 
             switch (opcao) {
                 case 1:
-                    Ordenacao.iniciarOrdenacao(scanner, caminhoArquivoBinario, caminhoArquivoBinario);
-                    break;
+                    Ordenacao.iniciarOrdenacao(scanner, caminhoArquivoBinario, caminhoArquivoBinarioFinal);
+                    return;
                 case 2:
                     System.out.println("📚 Esta opção permite organizar os Pokémons no arquivo binário.");
                     System.out.println(
@@ -276,19 +275,20 @@ public class Entrega1 {
             }
         }
     }
-    public static void mainInterface(Scanner scanner, String caminhoArquivo, String caminhoArquivoBinario) {
+
+    public static void mainInterface(Scanner scanner, String caminhoArquivo, String caminhoArquivoBinario,String caminhoArquivoBinarioFinal) {
         while (true) {
-            System.out.println("==================================");
-            System.out.println("==                               ==");
-            System.out.println("==   ██████╗ ██████╗ ██    ██    ==");
-            System.out.println("==   ██╔══██╗██╔══██╗██    ██    ==");
-            System.out.println("/=   ██████╔╝██████╔╝██    ██    ==");
-            System.out.println("==   ██╔═══╝ ██╔═══╝ ██    ██    ==");
-            System.out.println("==   ██║     ██║     ██    ██    ==");
-            System.out.println("==   ╚═╝     ╚═╝      ██████  ✚  ==");
-            System.out.println("==           ORGANIZAÇÃO (O)      ==");
-            System.out.println("==================================");
-    
+            System.out.println("=================================================");
+            System.out.println("=================================");
+            System.out.println("==       ███     ███           ==");
+            System.out.println("==       ████   ████           ==");
+            System.out.println("==       ██ ██ ██ ██           ==");
+            System.out.println("==       ██  ███  ██           ==");
+            System.out.println("==       ██   █   ██           ==");
+            System.out.println("==       ██       ██           ==");
+            System.out.println("==       ██       ██           ==");
+            System.out.println("=================================");
+
             System.out.println("1 ------- Criar Arquivo");
             System.out.println("2 ------- CREATE");
             System.out.println("3 ------- UPDATE");
@@ -296,15 +296,15 @@ public class Entrega1 {
             System.out.println("5 ------- DELETE");
             System.out.println("6 ------- ORGANIZAÇÃO");
             System.out.println("7 ------- Sair");
-  
+
             System.out.print("Escolha uma opção: ");
-    
+
             try {
                 int opcao = Integer.parseInt(scanner.nextLine().trim());
-    
+
                 switch (opcao) {
                     case 1:
-                        arquivoInterface(scanner, caminhoArquivo,caminhoArquivoBinario);
+                        arquivoInterface(scanner, caminhoArquivo, caminhoArquivoBinario);
                         break;
                     case 2:
                         createInterface(scanner, caminhoArquivo, caminhoArquivoBinario);
@@ -319,9 +319,9 @@ public class Entrega1 {
                         deleteInterface(scanner, caminhoArquivoBinario);
                         break;
                     case 6:
-                        organizacaoInterface(scanner, caminhoArquivoBinario);
-                        break;
-                        case 7:
+                        organizacaoInterface(scanner, caminhoArquivoBinario,caminhoArquivoBinarioFinal);
+                        return;
+                    case 7:
                         System.out.println("🚪 Saindo do programa. Até logo!");
                         return;
                     default:
@@ -333,7 +333,7 @@ public class Entrega1 {
             }
         }
     }
-    
+
     /**
      * metodo que chama varias funcoes para mostrar o funcionamento da estrutura de
      * dados criada em arquivo e dos algoritimos neles pedidos
@@ -347,7 +347,7 @@ public class Entrega1 {
      */
     public static void entregaFinal(Scanner scanner, String caminhoArquivo, String caminhoArquivoBinario,
             String caminhoArquivoBinarioFinal) {
-        mainInterface(scanner, caminhoArquivo, caminhoArquivoBinario);
+        mainInterface(scanner, caminhoArquivo, caminhoArquivoBinario,caminhoArquivoBinarioFinal);
 
     }
 
