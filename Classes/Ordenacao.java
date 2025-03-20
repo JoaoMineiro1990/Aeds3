@@ -71,7 +71,7 @@ public class Ordenacao {
             for (int i = 0; i < arquivos.size(); i++) {
                 RandomAccessFile raf = arquivos.get(i);
                 if (raf.getFilePointer() < raf.length() && minHeap.size() < heapSize) {
-                    Pokemon p = Leitura.lerPokemon(raf);
+                    Pokemon p = Leitura.lerPokemonSemPrint(raf);
                     if (p != null) {
                         minHeap.add(new PokemonEntry(p, i));
                     }
@@ -98,7 +98,7 @@ public class Ordenacao {
                     ultimoSalvo = menorPokemon;
                     RandomAccessFile raf = arquivos.get(origemArquivo);
                     if (raf.getFilePointer() < raf.length()) {
-                        Pokemon proximoPokemon = Leitura.lerPokemon(raf);
+                        Pokemon proximoPokemon = Leitura.lerPokemonSemPrint(raf);
                         if (proximoPokemon != null) {
                             if (ultimoSalvo == null || proximoPokemon.getName().compareTo(ultimoSalvo.getName()) >= 0) {
                                 minHeap.add(new PokemonEntry(proximoPokemon, origemArquivo));
@@ -174,7 +174,7 @@ public class Ordenacao {
             PriorityQueue<Pokemon> nextRunHeap = new PriorityQueue<>(Comparator.comparing(Pokemon::getName));
 
             while (raf.getFilePointer() < raf.length() && minHeap.size() < heapSize) {
-                Pokemon p = Leitura.lerPokemon(raf);
+                Pokemon p = Leitura.lerPokemonSemPrint(raf);
                 if (p != null) {
                     minHeap.add(p);
                     totalLidos++;
@@ -193,7 +193,7 @@ public class Ordenacao {
                     bufferPokemons.add(menorPokemon);
                     ultimoSalvo = menorPokemon;
                     if (raf.getFilePointer() < raf.length()) {
-                        Pokemon proximoPokemon = Leitura.lerPokemon(raf);
+                        Pokemon proximoPokemon = Leitura.lerPokemonSemPrint(raf);
                         if (proximoPokemon != null) {
                             totalLidos++;
                             if (ultimoSalvo == null || proximoPokemon.getName().compareTo(ultimoSalvo.getName()) >= 0) {

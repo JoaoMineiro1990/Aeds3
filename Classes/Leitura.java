@@ -116,9 +116,25 @@ public class Leitura {
             return null;
         }
         Pokemon p = Criacao.CriarPokemonDoArquivo(raf);
-        // imprimirPokemon(p);
+        Auxiliares.imprimirPokemon(p);
         // System.out.println("Posição atual no arquivo: " + raf.getFilePointer() + "
         // bytes.");
+        return p;
+    }
+    public static Pokemon lerPokemonSemPrint(RandomAccessFile raf) throws IOException {
+        int cova = raf.readInt();
+        if (cova == 0) {
+            int tamanhoEntrada;
+            tamanhoEntrada = raf.readInt();
+            long posicaoAntes = raf.getFilePointer();
+            System.out.println(" Entrada removida. Posição antes do pulo: " + posicaoAntes + " bytes. Pulando "
+                    + tamanhoEntrada + " bytes...");
+            raf.seek(posicaoAntes + tamanhoEntrada - 4);
+            long posicaoDepois = raf.getFilePointer();
+            System.out.println(" Nova posição após pular: " + posicaoDepois + " bytes.");
+            return null;
+        }
+        Pokemon p = Criacao.CriarPokemonDoArquivo(raf);
         return p;
     }
 

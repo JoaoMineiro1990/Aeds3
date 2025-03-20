@@ -100,8 +100,7 @@ public class PokemonCRUD {
                         System.out.println("Número inválido. Deve ser maior que 0.");
                         break;
                     }
-
-                    Pokemon p = Leitura.lerPokemonPorNumero(caminhoArquivoBinario, numeroEscolhido);
+                    Leitura.lerPokemonPorNumero(caminhoArquivoBinario, numeroEscolhido);
                     break;
 
                 case 2:
@@ -160,7 +159,8 @@ public class PokemonCRUD {
         while (continuar) {
             System.out.println("Escolha uma opção:");
             System.out.println("1 - Excluir um Pokémon");
-            System.out.println("2 - Sair");
+            System.out.println("2 - Verificar buracos");
+            System.out.println("3 - Sair");
     
             int escolha = sc.nextInt();
             sc.nextLine(); 
@@ -178,8 +178,10 @@ public class PokemonCRUD {
                         System.out.println("Pokémon excluído com sucesso!");
                     }
                     break;
-    
-                case 2:
+                    case 2:
+                    Leitura.verificarBuracos(caminhoDoArquivoBinario);
+                    break;
+                case 3:
                     System.out.println("Saindo do modo de exclusão...");
                     continuar = false;
                     break;

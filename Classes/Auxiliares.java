@@ -159,7 +159,7 @@ public class Auxiliares {
         System.out.print("Name: " + p.getName() + " ");
         System.out.print("Type1: " + p.getType1() + " ");
         System.out.print("Type2: " + p.getType2() + " ");
-        System.out.print("Abilities: " + p.getAbilities() + " ");
+        System.out.println("Abilities: " + p.getAbilities() + " ");
         System.out.print("HP: " + p.getHp() + " ");
         System.out.print("ATT: " + p.getAtt() + " ");
         System.out.print("DEF: " + p.getDef() + " ");
@@ -167,7 +167,7 @@ public class Auxiliares {
         System.out.print("SPD: " + p.getSpd() + " ");
         System.out.print("SPE: " + p.getSpe() + " ");
         System.out.print("BST: " + p.getBst() + " ");
-        System.out.print("Mean: " + p.getMean() + " ");
+        System.out.println("Mean: " + p.getMean() + " ");
         System.out.print("StdDev: " + p.getStandardDeviation() + " ");
         System.out.print("Generation: " + p.getGeneration() + " ");
         System.out.print("Catch Rate: " + p.getCatchRate() + " ");
